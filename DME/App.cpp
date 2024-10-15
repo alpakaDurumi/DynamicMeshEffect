@@ -14,18 +14,24 @@ App::App()
 App::~App() {
     g_app = nullptr;
 
+    // ImGui
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+
     DestroyWindow(m_hWnd);
 }
 
 bool App::Initialize() {
     if (!InitWindow()) return false;
     if (!InitDirect3D()) return false;
+    if (!InitGUI()) return false;
 
     return true;
 }
 
 int App::Run() {
-    // 윈도우 메시지 처리
+    // 윈도우 메시지 처리 루프
     MSG msg = {};
     while (WM_QUIT != msg.message) {
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -33,7 +39,23 @@ int App::Run() {
             DispatchMessage(&msg);
         }
         else {
-            // do Something
+            // ImGui frame 시작
+            ImGui_ImplWin32_NewFrame();
+            ImGui_ImplDX11_NewFrame();
+            ImGui::NewFrame();
+            ImGui::ShowDemoWindow();
+
+            // d3d 렌더링 코드(임시)
+            float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f }; // 검은색 배경
+            m_context->ClearRenderTargetView(m_renderTargetView.Get(), clearColor);
+            m_context->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+
+            // ImGui frame 종료
+            ImGui::Render();
+            ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+            // swap chain 동작
+            m_swapChain->Present(1, 0);
         }
     }
 
@@ -139,7 +161,7 @@ bool App::InitDirect3D() {
     createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-    // device 및 swapchain 생성
+    // device 및 swap chain 생성
     if (FAILED(D3D11CreateDeviceAndSwapChain(
         nullptr,
         D3D_DRIVER_TYPE_HARDWARE,
@@ -211,8 +233,7 @@ bool App::InitDirect3D() {
     }
 
     // depth stencil view 생성
-    ComPtr<ID3D11DepthStencilView> depthStencilView;
-    if (FAILED(m_device->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, depthStencilView.GetAddressOf()))) {
+    if (FAILED(m_device->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, m_depthStencilView.GetAddressOf()))) {
         MessageBox(nullptr, L"Depth Stencil View Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
         return false;
     }
@@ -226,6 +247,26 @@ bool App::InitDirect3D() {
     depthStencilDesc.StencilEnable = FALSE;
     if (FAILED(m_device->CreateDepthStencilState(&depthStencilDesc, m_depthStencilState.GetAddressOf()))) {
         MessageBox(nullptr, L"Depth Stencil State Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+
+    return true;
+}
+
+bool App::InitGUI() {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(static_cast<float>(m_screenWidth), static_cast<float>(m_screenHeight));
+    ImGui::StyleColorsDark();
+
+    if (!ImGui_ImplWin32_Init(m_hWnd)) {
+        MessageBox(nullptr, L"ImGui Win32 Initialization Failed!", L"Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+
+    if (!ImGui_ImplDX11_Init(m_device.Get(), m_context.Get())) {
+        MessageBox(nullptr, L"ImGui DX11 Initialization Failed!", L"Error", MB_OK | MB_ICONERROR);
         return false;
     }
 

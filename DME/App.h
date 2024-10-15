@@ -25,6 +25,7 @@ public:
 private:
     bool InitWindow();
 	bool InitDirect3D();
+	bool InitGUI();
 
     int m_screenWidth;
     int m_screenHeight;
@@ -35,5 +36,6 @@ private:
 	ComPtr<ID3D11DeviceContext> m_context;
 	ComPtr<ID3D11RenderTargetView> m_renderTargetView;
 	ComPtr<ID3D11RasterizerState> m_rasterizerState;
+	ComPtr<ID3D11DepthStencilView> m_depthStencilView;
 	ComPtr<ID3D11DepthStencilState> m_depthStencilState;
 };

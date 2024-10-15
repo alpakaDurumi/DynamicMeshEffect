@@ -12,11 +12,14 @@ App::App()
 }
 
 App::~App() {
+    g_app = nullptr;
+
     DestroyWindow(m_hWnd);
 }
 
 bool App::Initialize() {
     if (!InitWindow()) return false;
+    if (!InitDirect3D()) return false;
 
     return true;
 }
@@ -101,6 +104,130 @@ bool App::InitWindow() {
 
     ShowWindow(m_hWnd, SW_SHOWDEFAULT);
     UpdateWindow(m_hWnd);
+
+    return true;
+}
+
+bool App::InitDirect3D() {
+    // swap chain desc
+    DXGI_SWAP_CHAIN_DESC scDesc;
+    ZeroMemory(&scDesc, sizeof(scDesc));
+    scDesc.BufferDesc.Width = m_screenWidth;
+    scDesc.BufferDesc.Height = m_screenHeight;
+    scDesc.BufferDesc.RefreshRate.Numerator = 60;
+    scDesc.BufferDesc.RefreshRate.Denominator = 1;
+    scDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    scDesc.SampleDesc.Count = 1;     // not use MSAA
+    scDesc.SampleDesc.Quality = 0;
+    scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    scDesc.BufferCount = 2;
+    scDesc.OutputWindow = m_hWnd;
+    scDesc.Windowed = TRUE;
+    scDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+    // feature level
+    D3D_FEATURE_LEVEL featureLevels[2] = {
+        D3D_FEATURE_LEVEL_11_0,
+        D3D_FEATURE_LEVEL_10_0
+    };
+    D3D_FEATURE_LEVEL featureLevel;
+
+    // 디버그 모드 시 플래그 설정
+    UINT createDeviceFlags = 0;
+#if defined(_DEBUG)
+    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+    // device 및 swapchain 생성
+    if (FAILED(D3D11CreateDeviceAndSwapChain(
+        nullptr,
+        D3D_DRIVER_TYPE_HARDWARE,
+        nullptr,
+        createDeviceFlags,
+        featureLevels,
+        ARRAYSIZE(featureLevels),
+        D3D11_SDK_VERSION,
+        &scDesc,
+        m_swapChain.GetAddressOf(),
+        m_device.GetAddressOf(),
+        &featureLevel,
+        m_context.GetAddressOf()))) {
+        MessageBox(nullptr, L"Device and Swap Chain Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+
+    // RTV 생성
+    ComPtr<ID3D11Texture2D> backBuffer;
+    m_swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
+    if (FAILED(m_device->CreateRenderTargetView(backBuffer.Get(), nullptr, m_renderTargetView.GetAddressOf()))) {
+        MessageBox(nullptr, L"Render Target View Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+
+    // 뷰포트 설정
+    D3D11_VIEWPORT viewport;
+    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = static_cast<float>(m_screenWidth);
+    viewport.Height = static_cast<float>(m_screenHeight);
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    m_context->RSSetViewports(1, &viewport);
+    
+    // rasterizer state 생성
+    D3D11_RASTERIZER_DESC rastDesc;
+    ZeroMemory(&rastDesc, sizeof(D3D11_RASTERIZER_DESC));
+    rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+    rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+    rastDesc.FrontCounterClockwise = FALSE;
+    rastDesc.DepthClipEnable = TRUE;
+    if (FAILED(m_device->CreateRasterizerState(&rastDesc, m_rasterizerState.GetAddressOf()))) {
+        MessageBox(nullptr, L"Rasterizer State Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+
+    // depth stencil buffer desc
+    D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
+    ZeroMemory(&depthStencilBufferDesc, sizeof(D3D11_TEXTURE2D_DESC));
+    depthStencilBufferDesc.Width = m_screenWidth;
+    depthStencilBufferDesc.Height = m_screenHeight;
+    depthStencilBufferDesc.MipLevels = 1;
+    depthStencilBufferDesc.ArraySize = 1;
+    depthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilBufferDesc.SampleDesc.Count = 1;
+    depthStencilBufferDesc.SampleDesc.Quality = 0;
+    depthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthStencilBufferDesc.CPUAccessFlags = 0;
+    depthStencilBufferDesc.MiscFlags = 0;
+
+    // depth stencil buffer 생성
+    ComPtr<ID3D11Texture2D> depthStencilBuffer;
+    if (FAILED(m_device->CreateTexture2D(&depthStencilBufferDesc, nullptr, depthStencilBuffer.GetAddressOf()))) {
+        MessageBox(nullptr, L"Depth Stencil Buffer Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+
+    // depth stencil view 생성
+    ComPtr<ID3D11DepthStencilView> depthStencilView;
+    if (FAILED(m_device->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, depthStencilView.GetAddressOf()))) {
+        MessageBox(nullptr, L"Depth Stencil View Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+
+    // depth stencil state 생성
+    D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+    ZeroMemory(&depthStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+    depthStencilDesc.DepthEnable = TRUE;
+    depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+    depthStencilDesc.StencilEnable = FALSE;
+    if (FAILED(m_device->CreateDepthStencilState(&depthStencilDesc, m_depthStencilState.GetAddressOf()))) {
+        MessageBox(nullptr, L"Depth Stencil State Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
 
     return true;
 }

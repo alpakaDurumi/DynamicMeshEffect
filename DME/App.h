@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 #include <windows.h>
 #include <wrl.h>
 
@@ -26,8 +24,16 @@ public:
 	LRESULT MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 private:
     bool InitWindow();
+	bool InitDirect3D();
 
     int m_screenWidth;
     int m_screenHeight;
 	HWND m_hWnd = nullptr;
+
+	ComPtr<IDXGISwapChain> m_swapChain;
+	ComPtr<ID3D11Device> m_device;
+	ComPtr<ID3D11DeviceContext> m_context;
+	ComPtr<ID3D11RenderTargetView> m_renderTargetView;
+	ComPtr<ID3D11RasterizerState> m_rasterizerState;
+	ComPtr<ID3D11DepthStencilState> m_depthStencilState;
 };

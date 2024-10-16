@@ -1,4 +1,5 @@
 #include "App.h"
+#include "GeometryGenerator.h"
 
 // 전방 선언
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -26,6 +27,9 @@ bool App::Initialize() {
     if (!InitWindow()) return false;
     if (!InitDirect3D()) return false;
     if (!InitGUI()) return false;
+
+    MeshData box = GeometryGenerator::CreateBox();
+    // App의 멤버로 MeshGroup을 추가하고, 거기에 box가 추가되도록 할 것
 
     return true;
 }

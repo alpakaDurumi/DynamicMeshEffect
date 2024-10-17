@@ -14,4 +14,7 @@ public:
     ComPtr<ID3D11Buffer> m_indexBuffer;
 
     UINT m_indexCount;
+
+    ComPtr<ID3D11Texture2D> m_texture;
+    ComPtr<ID3D11ShaderResourceView> m_shaderResourceView;
 };

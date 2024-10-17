@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 void D3D11Utils::CreateVertexBuffer(ComPtr<ID3D11Device>& device, const std::vector<Vertex>& vertices, ComPtr<ID3D11Buffer>& vertexBuffer) {
     D3D11_BUFFER_DESC bufferDesc;
     ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC));
@@ -140,4 +143,48 @@ void D3D11Utils::CreatePixelShader(
         shaderBlob->GetBufferSize(),
         nullptr,
         pixelShader.GetAddressOf());
+}
+
+void D3D11Utils::CreateTexture(
+    ComPtr<ID3D11Device>& device,
+    const std::string filename,
+    ComPtr<ID3D11Texture2D>& texture,
+    ComPtr<ID3D11ShaderResourceView>& textureResourceView) {
+
+    int width, height, channels;
+
+    unsigned char* img = stbi_load(filename.c_str(), &width, &height, &channels, 0);
+
+    // 4채널로 만들어서 복사
+    std::vector<BYTE> image;
+    image.resize(width * height * 4);
+    for (size_t i = 0; i < width * height; i++) {
+        for (size_t c = 0; c < 3; c++) {
+            image[4 * i + c] = img[i * channels + c];
+        }
+        image[4 * i + 3] = 255;
+    }
+
+    D3D11_TEXTURE2D_DESC txtDesc;
+    ZeroMemory(&txtDesc, sizeof(D3D11_TEXTURE2D_DESC));
+    txtDesc.Width = width;
+    txtDesc.Height = height;
+    txtDesc.MipLevels = 1;
+    txtDesc.ArraySize = 1;
+    txtDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    txtDesc.SampleDesc.Count = 1;
+    txtDesc.SampleDesc.Quality = 0;
+    txtDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    txtDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    txtDesc.CPUAccessFlags = 0;
+    txtDesc.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA initData;
+    initData.pSysMem = image.data();
+    initData.SysMemPitch = txtDesc.Width * sizeof(BYTE) * 4;
+    initData.SysMemSlicePitch = 0;
+
+    // 텍스처와 SRV 생성
+    device->CreateTexture2D(&txtDesc, &initData, texture.GetAddressOf());
+    device->CreateShaderResourceView(texture.Get(), nullptr, textureResourceView.GetAddressOf());
 }

@@ -85,4 +85,10 @@ public:
 
         context->Unmap(buffer.Get(), NULL);
     }
+
+    static void CreateTexture(
+        ComPtr<ID3D11Device>& device,
+        const std::string filename,
+        ComPtr<ID3D11Texture2D>& texture,
+        ComPtr<ID3D11ShaderResourceView>& textureResourceView);
 };

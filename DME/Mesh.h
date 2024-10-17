@@ -12,4 +12,6 @@ class Mesh {
 public:
     ComPtr<ID3D11Buffer> m_vertexBuffer;
     ComPtr<ID3D11Buffer> m_indexBuffer;
+
+    UINT m_indexCount;
 };

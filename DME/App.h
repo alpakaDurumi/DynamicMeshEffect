@@ -10,6 +10,8 @@
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
 
+#include "MeshGroup.h"
+
 using Microsoft::WRL::ComPtr;
 
 class App {
@@ -20,6 +22,8 @@ public:
 	bool Initialize();
 
 	int Run();
+
+	//void Update(float dt);
 
 	LRESULT MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 private:
@@ -38,4 +42,11 @@ private:
 	ComPtr<ID3D11RasterizerState> m_rasterizerState;
 	ComPtr<ID3D11DepthStencilView> m_depthStencilView;
 	ComPtr<ID3D11DepthStencilState> m_depthStencilState;
+
+	MeshGroup m_OriginalMeshGroup;
+	MeshGroup m_ShellMeshGroup;
+
+	float m_fovY = 70.0f;
+	float m_nearZ = 0.01f;
+	float m_farZ = 100.0f;
 };

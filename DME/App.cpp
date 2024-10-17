@@ -28,8 +28,13 @@ bool App::Initialize() {
     if (!InitDirect3D()) return false;
     if (!InitGUI()) return false;
 
-    MeshData box = GeometryGenerator::CreateBox();
-    // App의 멤버로 MeshGroup을 추가하고, 거기에 box가 추가되도록 할 것
+    m_OriginalMeshGroup.Initialize(m_device);
+    m_OriginalMeshGroup.AddMesh(m_device, { GeometryGenerator::CreateBox() });
+
+    // 테스트용 코드
+    m_OriginalMeshGroup.UpdateConstantBuffers(m_device, m_context,
+        { 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f },
+        m_fovY, static_cast<float>(m_screenWidth) / m_screenHeight, m_nearZ, m_farZ);
 
     return true;
 }
@@ -47,12 +52,20 @@ int App::Run() {
             ImGui_ImplWin32_NewFrame();
             ImGui_ImplDX11_NewFrame();
             ImGui::NewFrame();
-            ImGui::ShowDemoWindow();
+            //ImGui::ShowDemoWindow();
 
-            // d3d 렌더링 코드(임시)
+            // d3d 렌더링 코드
+
+            // RTV, depth stencil view 클리어
             float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f }; // 검은색 배경
             m_context->ClearRenderTargetView(m_renderTargetView.Get(), clearColor);
+            m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+            // RTV, depth stencil state 설정
             m_context->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+            m_context->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
+
+            m_OriginalMeshGroup.Render(m_context);
 
             // ImGui frame 종료
             ImGui::Render();
@@ -213,6 +226,7 @@ bool App::InitDirect3D() {
         MessageBox(nullptr, L"Rasterizer State Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
         return false;
     }
+    m_context->RSSetState(m_rasterizerState.Get());
 
     // depth stencil buffer desc
     D3D11_TEXTURE2D_DESC depthStencilBufferDesc;

@@ -16,37 +16,44 @@ using Microsoft::WRL::ComPtr;
 
 class App {
 public:
-	App();
-	~App();
+    App();
+    ~App();
 
-	bool Initialize();
+    bool Initialize();
 
-	int Run();
+    int Run();
 
-	//void Update(float dt);
-
-	LRESULT MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    LRESULT MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 private:
     bool InitWindow();
-	bool InitDirect3D();
-	bool InitGUI();
+    bool InitDirect3D();
+    bool InitGUI();
+
+    void UpdateMVP();
+    void UpdateGUI();
+
+    void Render();
 
     int m_screenWidth;
     int m_screenHeight;
-	HWND m_hWnd = nullptr;
+    HWND m_hWnd = nullptr;
 
-	ComPtr<IDXGISwapChain> m_swapChain;
-	ComPtr<ID3D11Device> m_device;
-	ComPtr<ID3D11DeviceContext> m_context;
-	ComPtr<ID3D11RenderTargetView> m_renderTargetView;
-	ComPtr<ID3D11RasterizerState> m_rasterizerState;
-	ComPtr<ID3D11DepthStencilView> m_depthStencilView;
-	ComPtr<ID3D11DepthStencilState> m_depthStencilState;
+    ComPtr<IDXGISwapChain> m_swapChain;
+    ComPtr<ID3D11Device> m_device;
+    ComPtr<ID3D11DeviceContext> m_context;
+    ComPtr<ID3D11RenderTargetView> m_renderTargetView;
+    ComPtr<ID3D11RasterizerState> m_rasterizerState;
+    ComPtr<ID3D11DepthStencilView> m_depthStencilView;
+    ComPtr<ID3D11DepthStencilState> m_depthStencilState;
 
-	MeshGroup m_OriginalMeshGroup;
-	MeshGroup m_ShellMeshGroup;
+    MeshGroup m_OriginalMeshGroup;
+    MeshGroup m_ShellMeshGroup;
 
-	float m_fovY = 70.0f;
-	float m_nearZ = 0.01f;
-	float m_farZ = 100.0f;
+    // MVP За·Д
+    XMFLOAT3 m_scale = { 1.0f, 1.0f, 1.0f };
+    XMFLOAT3 m_rotation = { 0.0f, 0.0f, 0.0f };
+    XMFLOAT3 m_translation = { 0.0f, 0.0f, 0.0f };
+    float m_fovY = 70.0f;
+    float m_nearZ = 0.01f;
+    float m_farZ = 100.0f;
 };

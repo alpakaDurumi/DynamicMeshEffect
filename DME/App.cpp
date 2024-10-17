@@ -31,11 +31,6 @@ bool App::Initialize() {
     m_OriginalMeshGroup.Initialize(m_device);
     m_OriginalMeshGroup.AddMesh(m_device, { GeometryGenerator::CreateBox() });
 
-    // 테스트용 코드
-    m_OriginalMeshGroup.UpdateConstantBuffers(m_device, m_context,
-        { 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f },
-        m_fovY, static_cast<float>(m_screenWidth) / m_screenHeight, m_nearZ, m_farZ);
-
     return true;
 }
 
@@ -52,20 +47,15 @@ int App::Run() {
             ImGui_ImplWin32_NewFrame();
             ImGui_ImplDX11_NewFrame();
             ImGui::NewFrame();
-            //ImGui::ShowDemoWindow();
+            
+            // ImGui를 통한 값 업데이트
+            UpdateGUI();
 
-            // d3d 렌더링 코드
+            // MVP 업데이트
+            UpdateMVP();
 
-            // RTV, depth stencil view 클리어
-            float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f }; // 검은색 배경
-            m_context->ClearRenderTargetView(m_renderTargetView.Get(), clearColor);
-            m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-            // RTV, depth stencil state 설정
-            m_context->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
-            m_context->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
-
-            m_OriginalMeshGroup.Render(m_context);
+            // 렌더링
+            Render();
 
             // ImGui frame 종료
             ImGui::Render();
@@ -289,4 +279,48 @@ bool App::InitGUI() {
     }
 
     return true;
+}
+
+void App::UpdateMVP() {
+    // model
+    XMMATRIX modelMatrix = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) *
+        XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, m_rotation.z) *
+        XMMatrixTranslation(m_translation.x, m_translation.y, m_translation.z);
+    XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.model, XMMatrixTranspose(modelMatrix));
+
+    // invTranspose
+    XMMATRIX invTransposeMatrix = modelMatrix * XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+    invTransposeMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, modelMatrix));
+    XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.invTranspose, XMMatrixTranspose(invTransposeMatrix));
+
+    // view
+    XMMATRIX viewMatrix = XMMatrixLookAtLH({ 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+    XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.view, XMMatrixTranspose(viewMatrix));
+
+    // projection
+    XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(m_fovY, static_cast<float>(m_screenWidth) / m_screenHeight, m_nearZ, m_farZ);
+    XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.projection, XMMatrixTranspose(projectionMatrix));
+
+    // 버퍼 업데이트
+    m_OriginalMeshGroup.UpdateConstantBuffers(m_device, m_context);
+}
+
+void App::UpdateGUI() {
+    ImGui::SliderFloat3("Scale", &m_scale.x, 0.1f, 2.0f);
+    ImGui::SliderFloat3("Rotation", &m_rotation.x, -3.14f, 3.14f);
+    ImGui::SliderFloat3("Translation", &m_translation.x, -1.0f, 1.0f);
+}
+
+void App::Render() {
+    // RTV, depth stencil view 클리어
+    float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f }; // 검은색 배경
+    m_context->ClearRenderTargetView(m_renderTargetView.Get(), clearColor);
+    m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+    // RTV, depth stencil state 설정
+    m_context->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+    m_context->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
+
+    // MeshGroup 렌더
+    m_OriginalMeshGroup.Render(m_context);
 }

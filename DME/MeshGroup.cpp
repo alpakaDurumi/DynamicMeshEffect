@@ -81,28 +81,7 @@ void MeshGroup::Render(ComPtr<ID3D11DeviceContext>& context) {
     }
 }
 
-void MeshGroup::UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& context,
-    const XMFLOAT3& scale, const XMFLOAT3& rotation, const XMFLOAT3& translation,
-    float fovY, float aspect, float nearZ, float farZ) {
-    // model
-    XMMATRIX modelMatrix = XMMatrixScaling(scale.x, scale.y, scale.z) *
-        XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z) *
-        XMMatrixTranslation(translation.x, translation.y, translation.z);
-    XMStoreFloat4x4(&m_vertexConstantData.model, XMMatrixTranspose(modelMatrix));
-
-    // invTranspose
-    XMMATRIX invTransposeMatrix = modelMatrix * XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-    invTransposeMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, modelMatrix));
-    XMStoreFloat4x4(&m_vertexConstantData.invTranspose, XMMatrixTranspose(invTransposeMatrix));
-
-    // view
-    XMMATRIX viewMatrix = XMMatrixLookAtLH({ 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
-    XMStoreFloat4x4(&m_vertexConstantData.view, XMMatrixTranspose(viewMatrix));
-
-    // projection
-    XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(fovY, aspect, nearZ, farZ);
-    XMStoreFloat4x4(&m_vertexConstantData.projection, XMMatrixTranspose(projectionMatrix));
-
+void MeshGroup::UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& context) {
     // 버퍼 업데이트
     D3D11Utils::UpdateBuffer(device, context, m_vertexConstantData, m_vertexConstantBuffer);
     //D3D11Utils::UpdateBuffer(device, context, m_pixelConstantData, m_pixelConstantBuffer);

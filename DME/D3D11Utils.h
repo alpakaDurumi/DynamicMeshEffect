@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <iostream>
 
 #include <windows.h>
 #include <wrl.h>

@@ -5,7 +5,7 @@
 void D3D11Utils::CreateVertexBuffer(ComPtr<ID3D11Device>& device, const std::vector<Vertex>& vertices, ComPtr<ID3D11Buffer>& vertexBuffer) {
     D3D11_BUFFER_DESC bufferDesc;
     ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC));
-    bufferDesc.ByteWidth = sizeof(Vertex) * vertices.size();
+    bufferDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * vertices.size());
     bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
     bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bufferDesc.CPUAccessFlags = 0;
@@ -26,7 +26,7 @@ void D3D11Utils::CreateVertexBuffer(ComPtr<ID3D11Device>& device, const std::vec
 void D3D11Utils::CreateIndexBuffer(ComPtr<ID3D11Device>& device, const std::vector<UINT>& indices, ComPtr<ID3D11Buffer>& indexBuffer) {
     D3D11_BUFFER_DESC bufferDesc;
     ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC));
-    bufferDesc.ByteWidth = sizeof(Vertex) * indices.size();
+    bufferDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * indices.size());
     bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
     bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bufferDesc.CPUAccessFlags = 0;

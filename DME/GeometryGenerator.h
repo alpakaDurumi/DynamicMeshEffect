@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <string>
+
 #include <DirectXMath.h>
 #include <windows.h>
 
@@ -9,6 +11,7 @@
 struct MeshData {
     std::vector<Vertex> vertices;
     std::vector<UINT> indices;
+    std::string textureFilename;
 };
 
 class GeometryGenerator {

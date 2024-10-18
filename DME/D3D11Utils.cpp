@@ -149,11 +149,17 @@ void D3D11Utils::CreateTexture(
     ComPtr<ID3D11Device>& device,
     const std::string filename,
     ComPtr<ID3D11Texture2D>& texture,
-    ComPtr<ID3D11ShaderResourceView>& textureResourceView) {
+    ComPtr<ID3D11ShaderResourceView>& shaderResourceView) {
 
     int width, height, channels;
 
     unsigned char* img = stbi_load(filename.c_str(), &width, &height, &channels, 0);
+
+    // 텍스처 파일 로드 실패 시
+    if (!img) {
+        std::cout << "Texture file load failed." << std::endl;
+        return;
+    }
 
     // 4채널로 만들어서 복사
     std::vector<BYTE> image;
@@ -186,5 +192,8 @@ void D3D11Utils::CreateTexture(
 
     // 텍스처와 SRV 생성
     device->CreateTexture2D(&txtDesc, &initData, texture.GetAddressOf());
-    device->CreateShaderResourceView(texture.Get(), nullptr, textureResourceView.GetAddressOf());
+    device->CreateShaderResourceView(texture.Get(), nullptr, shaderResourceView.GetAddressOf());
+
+    // img 메모리 해제
+    stbi_image_free(img);
 }

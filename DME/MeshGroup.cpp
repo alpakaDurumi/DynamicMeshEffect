@@ -50,6 +50,11 @@ void MeshGroup::AddMesh(ComPtr<ID3D11Device>& device, const std::vector<MeshData
         // 인덱스 개수 지정
         newMesh->m_indexCount = static_cast<UINT>(meshData.indices.size());
 
+        // 텍스처 파일 존재 시 텍스처 생성
+        if (!meshData.textureFilename.empty()) {
+            D3D11Utils::CreateTexture(device, meshData.textureFilename, newMesh->m_texture, newMesh->m_shaderResourceView);
+        }
+
         m_meshes.push_back(newMesh);
     }
 }
@@ -72,11 +77,13 @@ void MeshGroup::Render(ComPtr<ID3D11DeviceContext>& context) {
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
     for (const auto& mesh : m_meshes) {
-        //context->PSSetShaderResources(0, 3, resViews);
-
         context->IASetVertexBuffers(0, 1, mesh->m_vertexBuffer.GetAddressOf(), &stride, &offset);
         context->IASetIndexBuffer(mesh->m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        // SRV 설정
+        context->PSSetShaderResources(0, 1, mesh->m_shaderResourceView.GetAddressOf());
+
         context->DrawIndexed(mesh->m_indexCount, 0, 0);
     }
 }

@@ -29,7 +29,9 @@ bool App::Initialize() {
     if (!InitGUI()) return false;
 
     m_OriginalMeshGroup.Initialize(m_device);
-    m_OriginalMeshGroup.AddMesh(m_device, { GeometryGenerator::CreateBox() });
+    auto box = GeometryGenerator::CreateBox();
+    box.textureFilename = "wall.jpg";
+    m_OriginalMeshGroup.AddMesh(m_device, { box });
 
     return true;
 }

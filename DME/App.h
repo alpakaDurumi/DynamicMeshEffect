@@ -43,7 +43,8 @@ private:
     ComPtr<ID3D11Device> m_device;
     ComPtr<ID3D11DeviceContext> m_context;
     ComPtr<ID3D11RenderTargetView> m_renderTargetView;
-    ComPtr<ID3D11RasterizerState> m_rasterizerState;
+    ComPtr<ID3D11RasterizerState> m_rasterizerStateSolid;
+    ComPtr<ID3D11RasterizerState> m_rasterizerStateWire;
     ComPtr<ID3D11DepthStencilView> m_depthStencilView;
     ComPtr<ID3D11DepthStencilState> m_depthStencilState;
 
@@ -61,4 +62,6 @@ private:
     // ±¤¿ø
     int m_lightType = 0;
     Light m_light[3];
+
+    bool m_drawAsWire = false;
 };

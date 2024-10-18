@@ -242,11 +242,19 @@ bool App::InitDirect3D() {
     rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
     rastDesc.FrontCounterClockwise = FALSE;
     rastDesc.DepthClipEnable = TRUE;
-    if (FAILED(m_device->CreateRasterizerState(&rastDesc, m_rasterizerState.GetAddressOf()))) {
-        MessageBox(nullptr, L"Rasterizer State Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+    if (FAILED(m_device->CreateRasterizerState(&rastDesc, m_rasterizerStateSolid.GetAddressOf()))) {
+        MessageBox(nullptr, L"Rasterizer State(Solid) Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
         return false;
     }
-    m_context->RSSetState(m_rasterizerState.Get());
+    // wireframe도 같이 생성
+    rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
+    rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+    if (FAILED(m_device->CreateRasterizerState(&rastDesc, m_rasterizerStateWire.GetAddressOf()))) {
+        MessageBox(nullptr, L"Rasterizer State(Wireframe) Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+    // 초기 설정값은 solid
+    m_context->RSSetState(m_rasterizerStateSolid.Get());
 
     // depth stencil buffer 생성
     D3D11Utils::CreateDepthBuffer(m_device, m_screenWidth, m_screenHeight, m_depthStencilView);
@@ -325,6 +333,9 @@ void App::UpdateGUI() {
     // 텍스처 사용
     ImGui::Checkbox("Use Texture", &m_OriginalMeshGroup.m_pixelConstantData.useTexture);
 
+    // wireframe 설정
+    ImGui::Checkbox("Wireframe", &m_drawAsWire);
+
     // 광원 타입
     if (ImGui::RadioButton("Directional Light", m_lightType == 0)) {
         m_lightType = 0;
@@ -358,6 +369,14 @@ void App::Render() {
     // RTV, depth stencil state 설정
     m_context->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
     m_context->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
+
+    // wireframe 설정
+    if (m_drawAsWire) {
+        m_context->RSSetState(m_rasterizerStateWire.Get());
+    }
+    else {
+        m_context->RSSetState(m_rasterizerStateSolid.Get());
+    }
 
     // MeshGroup 렌더
     m_OriginalMeshGroup.Render(m_context);

@@ -17,6 +17,10 @@ using Microsoft::WRL::ComPtr;
 
 class D3D11Utils {
 public:
+    static void SetViewport(ComPtr<ID3D11DeviceContext>& context, int screenWidth, int screenHeight);
+    static void CreateRenderTargetView(ComPtr<ID3D11Device>& device, ComPtr<IDXGISwapChain>& swapChain, ComPtr<ID3D11RenderTargetView>& renderTargetView);
+    static void CreateDepthBuffer(ComPtr<ID3D11Device>& device, int screenWidth, int screenHeight, ComPtr<ID3D11DepthStencilView>& depthStencilView);
+
     static void CreateVertexBuffer(ComPtr<ID3D11Device>& device, const std::vector<Vertex>& vertices, ComPtr<ID3D11Buffer>& vertexBuffer);
     static void CreateIndexBuffer(ComPtr<ID3D11Device>& device, const std::vector<UINT>& indices, ComPtr<ID3D11Buffer>& indexBuffer);
 

@@ -5,6 +5,54 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+void D3D11Utils::SetViewport(ComPtr<ID3D11DeviceContext>& context, int screenWidth, int screenHeight) {
+    D3D11_VIEWPORT viewport;
+    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = static_cast<float>(screenWidth);
+    viewport.Height = static_cast<float>(screenHeight);
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    context->RSSetViewports(1, &viewport);
+}
+
+void D3D11Utils::CreateRenderTargetView(ComPtr<ID3D11Device>& device, ComPtr<IDXGISwapChain>& swapChain, ComPtr<ID3D11RenderTargetView>& renderTargetView) {
+    ComPtr<ID3D11Texture2D> backBuffer;
+    swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
+    if (FAILED(device->CreateRenderTargetView(backBuffer.Get(), nullptr, renderTargetView.GetAddressOf()))) {
+        MessageBox(nullptr, L"Render Target View Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+    }
+}
+
+void D3D11Utils::CreateDepthBuffer(ComPtr<ID3D11Device>& device, int screenWidth, int screenHeight, ComPtr<ID3D11DepthStencilView>& depthStencilView) {
+    // depth stencil buffer desc
+    D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
+    ZeroMemory(&depthStencilBufferDesc, sizeof(D3D11_TEXTURE2D_DESC));
+    depthStencilBufferDesc.Width = screenWidth;
+    depthStencilBufferDesc.Height = screenHeight;
+    depthStencilBufferDesc.MipLevels = 1;
+    depthStencilBufferDesc.ArraySize = 1;
+    depthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilBufferDesc.SampleDesc.Count = 1;
+    depthStencilBufferDesc.SampleDesc.Quality = 0;
+    depthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthStencilBufferDesc.CPUAccessFlags = 0;
+    depthStencilBufferDesc.MiscFlags = 0;
+
+    // depth stencil buffer 持失
+    ComPtr<ID3D11Texture2D> depthStencilBuffer;
+    if (FAILED(device->CreateTexture2D(&depthStencilBufferDesc, nullptr, depthStencilBuffer.GetAddressOf()))) {
+        MessageBox(nullptr, L"Depth Stencil Buffer Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+    }
+
+    // depth stencil view 持失
+    if (FAILED(device->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, depthStencilView.GetAddressOf()))) {
+        MessageBox(nullptr, L"Depth Stencil View Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
+    }
+}
+
 void D3D11Utils::CreateVertexBuffer(ComPtr<ID3D11Device>& device, const std::vector<Vertex>& vertices, ComPtr<ID3D11Buffer>& vertexBuffer) {
     D3D11_BUFFER_DESC bufferDesc;
     ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC));

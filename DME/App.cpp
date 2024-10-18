@@ -87,6 +87,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 LRESULT App::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))
         return true;
+    switch (msg) {
+    case WM_SIZE:   // 창 크기 변경 시
+        if (m_swapChain) { // 처음 실행이 아닌지 확인
+            // 멤버 변수 업데이트
+            m_screenWidth = LOWORD(lParam);
+            m_screenHeight = HIWORD(lParam);
+
+            // 기존 RTV 해제
+            m_renderTargetView.Reset();
+
+            // swap chain 크기 조정
+            m_swapChain->ResizeBuffers(
+                0,  // 기존 버퍼 수 유지
+                static_cast<UINT>(m_screenWidth),
+                static_cast<UINT>(m_screenHeight),
+                DXGI_FORMAT_UNKNOWN, // 기존 포맷 유지
+                0);
+
+            // 뷰포트 설정
+            D3D11Utils::SetViewport(m_context, m_screenWidth, m_screenHeight);
+
+            // RTV 생성
+            D3D11Utils::CreateRenderTargetView(m_device, m_swapChain, m_renderTargetView);
+
+            // 기존 depth stencil view 해제
+            m_depthStencilView.Reset();
+             //depth stencil buffer 생성
+            D3D11Utils::CreateDepthBuffer(m_device, m_screenWidth, m_screenHeight, m_depthStencilView);
+        }
+
+        break;
+    }
 
     return DefWindowProc(hwnd, msg, wParam, lParam);
 }
@@ -198,23 +230,10 @@ bool App::InitDirect3D() {
     }
 
     // RTV 생성
-    ComPtr<ID3D11Texture2D> backBuffer;
-    m_swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
-    if (FAILED(m_device->CreateRenderTargetView(backBuffer.Get(), nullptr, m_renderTargetView.GetAddressOf()))) {
-        MessageBox(nullptr, L"Render Target View Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
-        return false;
-    }
+    D3D11Utils::CreateRenderTargetView(m_device, m_swapChain, m_renderTargetView);
 
     // 뷰포트 설정
-    D3D11_VIEWPORT viewport;
-    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.Width = static_cast<float>(m_screenWidth);
-    viewport.Height = static_cast<float>(m_screenHeight);
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-    m_context->RSSetViewports(1, &viewport);
+    D3D11Utils::SetViewport(m_context, m_screenWidth, m_screenHeight);
     
     // rasterizer state 생성
     D3D11_RASTERIZER_DESC rastDesc;
@@ -229,33 +248,8 @@ bool App::InitDirect3D() {
     }
     m_context->RSSetState(m_rasterizerState.Get());
 
-    // depth stencil buffer desc
-    D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
-    ZeroMemory(&depthStencilBufferDesc, sizeof(D3D11_TEXTURE2D_DESC));
-    depthStencilBufferDesc.Width = m_screenWidth;
-    depthStencilBufferDesc.Height = m_screenHeight;
-    depthStencilBufferDesc.MipLevels = 1;
-    depthStencilBufferDesc.ArraySize = 1;
-    depthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthStencilBufferDesc.SampleDesc.Count = 1;
-    depthStencilBufferDesc.SampleDesc.Quality = 0;
-    depthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    depthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    depthStencilBufferDesc.CPUAccessFlags = 0;
-    depthStencilBufferDesc.MiscFlags = 0;
-
     // depth stencil buffer 생성
-    ComPtr<ID3D11Texture2D> depthStencilBuffer;
-    if (FAILED(m_device->CreateTexture2D(&depthStencilBufferDesc, nullptr, depthStencilBuffer.GetAddressOf()))) {
-        MessageBox(nullptr, L"Depth Stencil Buffer Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
-        return false;
-    }
-
-    // depth stencil view 생성
-    if (FAILED(m_device->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, m_depthStencilView.GetAddressOf()))) {
-        MessageBox(nullptr, L"Depth Stencil View Creation Failed!", L"Error", MB_OK | MB_ICONERROR);
-        return false;
-    }
+    D3D11Utils::CreateDepthBuffer(m_device, m_screenWidth, m_screenHeight, m_depthStencilView);
 
     // depth stencil state 생성
     D3D11_DEPTH_STENCIL_DESC depthStencilDesc;

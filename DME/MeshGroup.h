@@ -14,6 +14,12 @@ struct VertexConstantData {
     XMFLOAT4X4 projection;
 };
 
+struct PixelConstantData {
+    bool useTexture;
+    char padding1[3];
+    float padding2[3];
+};
+
 class MeshGroup {
 public:
     void Initialize(ComPtr<ID3D11Device>& device);
@@ -22,7 +28,7 @@ public:
     void UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& context);
 
     VertexConstantData m_vertexConstantData;
-    //PixelConstantData m_pixelConstantData;
+    PixelConstantData m_pixelConstantData;
 private:
     std::vector<std::shared_ptr<Mesh>> m_meshes;
 

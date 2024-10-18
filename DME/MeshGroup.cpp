@@ -11,7 +11,7 @@ void MeshGroup::Initialize(ComPtr<ID3D11Device>& device) {
 
     // constant buffer 积己
     D3D11Utils::CreateConstantBuffer(device, m_vertexConstantData, m_vertexConstantBuffer);
-    //D3D11Utils::CreateConstantBuffer(device, m_basicPixelConstantData, m_pixelConstantBuffer);
+    D3D11Utils::CreateConstantBuffer(device, m_pixelConstantData, m_pixelConstantBuffer);
 
     // sampler 积己
     D3D11_SAMPLER_DESC sampDesc;
@@ -91,5 +91,5 @@ void MeshGroup::Render(ComPtr<ID3D11DeviceContext>& context) {
 void MeshGroup::UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& context) {
     // 滚欺 诀单捞飘
     D3D11Utils::UpdateBuffer(device, context, m_vertexConstantData, m_vertexConstantBuffer);
-    //D3D11Utils::UpdateBuffer(device, context, m_pixelConstantData, m_pixelConstantBuffer);
+    D3D11Utils::UpdateBuffer(device, context, m_pixelConstantData, m_pixelConstantBuffer);
 }

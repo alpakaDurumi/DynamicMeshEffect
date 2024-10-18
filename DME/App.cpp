@@ -56,6 +56,9 @@ int App::Run() {
             // MVP 업데이트
             UpdateMVP();
 
+            // 버퍼 업데이트
+            m_OriginalMeshGroup.UpdateConstantBuffers(m_device, m_context);
+
             // 렌더링
             Render();
 
@@ -302,15 +305,14 @@ void App::UpdateMVP() {
     // projection
     XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(m_fovY, static_cast<float>(m_screenWidth) / m_screenHeight, m_nearZ, m_farZ);
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.projection, XMMatrixTranspose(projectionMatrix));
-
-    // 버퍼 업데이트
-    m_OriginalMeshGroup.UpdateConstantBuffers(m_device, m_context);
 }
 
 void App::UpdateGUI() {
     ImGui::SliderFloat3("Scale", &m_scale.x, 0.1f, 2.0f);
     ImGui::SliderFloat3("Rotation", &m_rotation.x, -3.14f, 3.14f);
     ImGui::SliderFloat3("Translation", &m_translation.x, -1.0f, 1.0f);
+
+    ImGui::Checkbox("Use Texture", &m_OriginalMeshGroup.m_pixelConstantData.useTexture);
 }
 
 void App::Render() {

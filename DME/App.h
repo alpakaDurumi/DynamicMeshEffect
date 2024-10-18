@@ -29,7 +29,8 @@ private:
     bool InitDirect3D();
     bool InitGUI();
 
-    void UpdateMVP();
+    void UpdateVertexConstantData();
+    void UpdatePixelConstantData();
     void UpdateGUI();
 
     void Render();
@@ -56,4 +57,8 @@ private:
     float m_fovY = 70.0f;
     float m_nearZ = 0.01f;
     float m_farZ = 100.0f;
+
+    // ±¤¿ø
+    int m_lightType = 0;
+    Light m_light[3];
 };

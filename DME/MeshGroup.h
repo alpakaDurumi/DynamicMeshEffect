@@ -4,6 +4,8 @@
 
 #include "D3D11Utils.h"
 #include "Mesh.h"
+#include "Material.h"
+#include "Light.h"
 
 using namespace DirectX;
 
@@ -15,9 +17,12 @@ struct VertexConstantData {
 };
 
 struct PixelConstantData {
+    XMFLOAT3 viewWorld;
     bool useTexture;
-    char padding1[3];
-    float padding2[3];
+    Material material;
+    Light light;
+    int lightType;
+    XMFLOAT3 padding;
 };
 
 class MeshGroup {

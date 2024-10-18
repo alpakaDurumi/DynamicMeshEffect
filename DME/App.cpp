@@ -58,8 +58,9 @@ int App::Run() {
             // ImGui를 통한 값 업데이트
             UpdateGUI();
 
-            // MVP 업데이트
-            UpdateMVP();
+            // constant data 업데이트
+            UpdateVertexConstantData();
+            UpdatePixelConstantData();
 
             // 버퍼 업데이트
             m_OriginalMeshGroup.UpdateConstantBuffers(m_device, m_context);
@@ -291,7 +292,7 @@ bool App::InitGUI() {
     return true;
 }
 
-void App::UpdateMVP() {
+void App::UpdateVertexConstantData() {
     // model
     XMMATRIX modelMatrix = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) *
         XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, m_rotation.z) *
@@ -312,12 +313,43 @@ void App::UpdateMVP() {
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.projection, XMMatrixTranspose(projectionMatrix));
 }
 
+void App::UpdatePixelConstantData() {
+    // direction 정규화
+    XMVECTOR dir = XMVector3Normalize(XMLoadFloat3(&m_light[m_lightType].direction));
+    XMStoreFloat3(&m_light[m_lightType].direction, dir);
+
+    m_OriginalMeshGroup.m_pixelConstantData.light = m_light[m_lightType];
+    m_OriginalMeshGroup.m_pixelConstantData.lightType = m_lightType;
+}
+
 void App::UpdateGUI() {
+    // 모델 변환
     ImGui::SliderFloat3("Scale", &m_scale.x, 0.1f, 2.0f);
     ImGui::SliderFloat3("Rotation", &m_rotation.x, -3.14f, 3.14f);
     ImGui::SliderFloat3("Translation", &m_translation.x, -1.0f, 1.0f);
 
+    // 텍스처 사용
     ImGui::Checkbox("Use Texture", &m_OriginalMeshGroup.m_pixelConstantData.useTexture);
+
+    // 광원 타입
+    if (ImGui::RadioButton("Directional Light", m_lightType == 0)) {
+        m_lightType = 0;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Point Light", m_lightType == 1)) {
+        m_lightType = 1;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Spot Light", m_lightType == 2)) {
+        m_lightType = 2;
+    }
+
+    // 광원 속성
+    ImGui::SliderFloat3("Light Position", &m_light[m_lightType].position.x, -5.0f, 5.0f);
+    ImGui::SliderFloat3("Light Direction", &m_light[m_lightType].direction.x, -5.0f, 5.0f);
+    ImGui::SliderFloat("Light fallOffStart", &m_light[m_lightType].fallOffStart, 0.0f, 5.0f);
+    ImGui::SliderFloat("Light fallOffEnd", &m_light[m_lightType].fallOffEnd, 0.0f, 10.0f);
+    ImGui::SliderFloat("Light spotPower", &m_light[m_lightType].spotPower, 1.0f, 512.0f);
 }
 
 void App::Render() {

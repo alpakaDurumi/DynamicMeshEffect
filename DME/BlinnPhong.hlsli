@@ -62,7 +62,7 @@ float3 ComputePointLight(Light light, Material mat, float3 position, float3 norm
 	// 거리에 따라 조명 적용
 	if (d > light.fallOffEnd)
 	{
-		return float3(0.0f, 0.0f, 0.0f);
+		return mat.ambient;
 	}
 	else
 	{
@@ -92,7 +92,7 @@ float3 ComputeSpotLight(Light light, Material mat, float3 position, float3 norma
     // 거리에 따라 조명 적용
 	if (d > light.fallOffEnd)
 	{
-		return float3(0.0f, 0.0f, 0.0f);
+		return mat.ambient;
 	}
 	else
 	{

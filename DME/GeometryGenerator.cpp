@@ -62,9 +62,8 @@ MeshData GeometryGenerator::CreateBox(const float scale) {
 vector<MeshData> GeometryGenerator::ReadFromFile(std::string basePath, std::string filename) {
     using namespace DirectX;
 
-    ModelLoader modelLoader;
-    modelLoader.Load(basePath, filename);
-    vector<MeshData>& meshes = modelLoader.meshes;
+    // 모델 로드
+    vector<MeshData> meshes = ModelLoader::Load(basePath, filename);
 
     // 버텍스 정규화 과정
 

@@ -3,10 +3,10 @@
 #include <iostream>
 #include <filesystem>
 
-void ModelLoader::Load(std::string basePath, std::string filename) {
+std::vector<MeshData> ModelLoader::Load(const std::string& basePath, const std::string& filename) {
     using namespace DirectX;
 
-    this->basePath = basePath;
+    std::vector<MeshData> meshes;
 
     // Importer 인스턴스 생성
     Assimp::Importer importer;
@@ -16,22 +16,24 @@ void ModelLoader::Load(std::string basePath, std::string filename) {
     // 2. D3D에 맞게 좌표계와 winding order 설정
     // 3. 노멀 벡터가 없는 경우 자동으로 생성
     const aiScene* pScene = importer.ReadFile(
-        this->basePath + filename,
+        basePath + filename,
         aiProcess_Triangulate | aiProcess_SortByPType |
         aiProcess_MakeLeftHanded | aiProcess_FlipUVs | aiProcess_FlipWindingOrder |
         aiProcess_GenNormals);
 
     // 실패 시
     if (!pScene) {
-        std::cout << "Failed to assimp ReadFile : " << this->basePath + filename << std::endl;
+        std::cout << "Failed to assimp ReadFile : " << basePath + filename << std::endl;
     }
     else {
         XMMATRIX tr = XMMatrixIdentity();   // 초기 변환 행렬(단위 행렬)
-        ProcessNode(pScene->mRootNode, pScene, tr);
+        ProcessNode(pScene->mRootNode, pScene, tr, meshes, basePath);
     }
+
+    return meshes;
 }
 
-void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, DirectX::XMMATRIX tr) {
+void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, DirectX::XMMATRIX tr, std::vector<MeshData>& meshes, const std::string& basePath) {
     using namespace DirectX;
 
     // 해당 노드의 변환 행렬을 XMMATRIX에 로드
@@ -45,7 +47,7 @@ void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, DirectX::XMMAT
     // 노드에 속한 메쉬 처리
     for (UINT i = 0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        auto newMesh = this->ProcessMesh(mesh, scene);
+        auto newMesh = ProcessMesh(mesh, scene, basePath);
         // 각 버텍스에 대해 변환 적용
         for (auto& v : newMesh.vertices) {
             // 위치 변환
@@ -64,11 +66,11 @@ void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, DirectX::XMMAT
     }
 
     for (UINT i = 0; i < node->mNumChildren; i++) {
-        this->ProcessNode(node->mChildren[i], scene, subTransform);
+        ProcessNode(node->mChildren[i], scene, subTransform, meshes, basePath);
     }
 }
 
-MeshData ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
+MeshData ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, const std::string& basePath) {
     using namespace DirectX;
 
     std::vector<Vertex> vertices;
@@ -113,7 +115,7 @@ MeshData ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
             aiString filepath;
             material->GetTexture(aiTextureType_DIFFUSE, 0, &filepath);
 
-            std::string fullPath = this->basePath + std::string(std::filesystem::path(filepath.C_Str()).filename().string());
+            std::string fullPath = basePath + std::string(std::filesystem::path(filepath.C_Str()).filename().string());
             newMesh.textureFilename = fullPath;
         }
     }

@@ -8,11 +8,7 @@
 
 class ModelLoader {
 public:
-    void Load(std::string basePath, std::string filename);
-    void ProcessNode(aiNode* node, const aiScene* scene, DirectX::XMMATRIX tr);
-    MeshData ProcessMesh(aiMesh* mesh, const aiScene* scene);
-
-public:
-    std::string basePath;
-    std::vector<MeshData> meshes;
+    static std::vector<MeshData> Load(const std::string& basePath, const std::string& filename);
+    static void ProcessNode(aiNode* node, const aiScene* scene, DirectX::XMMATRIX tr, std::vector<MeshData>& meshes, const std::string& basePath);
+    static MeshData ProcessMesh(aiMesh* mesh, const aiScene* scene, const std::string& basePath);
 };

@@ -27,6 +27,7 @@ Content is based on lecture : [홍정모의 그래픽스 새싹코스 - 파트 2
 - [Dear ImGui](https://github.com/ocornut/imgui)
 - [assimp](https://github.com/assimp/assimp)
 - [stb](https://github.com/nothings/stb)
+- [DirectXTK](https://github.com/microsoft/DirectXTK)
 
 ---
 
@@ -60,3 +61,4 @@ Direct3D 11과 쉐이더 프로그래밍을 연습하기 위한 프로젝트입�
 - [Dear ImGui](https://github.com/ocornut/imgui)
 - [assimp](https://github.com/assimp/assimp)
 - [stb](https://github.com/nothings/stb)
+- [DirectXTK](https://github.com/microsoft/DirectXTK)

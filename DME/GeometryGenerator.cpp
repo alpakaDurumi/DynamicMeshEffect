@@ -1,4 +1,5 @@
 #include "GeometryGenerator.h"
+#include "ModelLoader.h"
 
 using namespace std;
 
@@ -56,4 +57,41 @@ MeshData GeometryGenerator::CreateBox(const float scale) {
     };
 
     return meshData;
+}
+
+vector<MeshData> GeometryGenerator::ReadFromFile(std::string basePath, std::string filename) {
+    using namespace DirectX;
+
+    ModelLoader modelLoader;
+    modelLoader.Load(basePath, filename);
+    vector<MeshData>& meshes = modelLoader.meshes;
+
+    // 버텍스 정규화 과정
+
+    // 각 축에 대한 최소값과 최대값 찾기
+    XMVECTOR vmin = XMVectorSet(1000.0f, 1000.0f, 1000.0f, 0.0f);
+    XMVECTOR vmax = XMVectorSet(-1000.0f, -1000.0f, -1000.0f, 0.0f);
+    for (auto& mesh : meshes) {
+        for (auto& v : mesh.vertices) {
+            XMVECTOR position = XMLoadFloat3(&v.position);
+            vmin = XMVectorMin(vmin, position);
+            vmax = XMVectorMax(vmax, position);
+        }
+    }
+
+    // 메쉬가 각 축에서 차지하는 길이와 중심 좌표 계산
+    XMVECTOR delta = XMVectorSubtract(vmax, vmin);
+    XMVECTOR center = XMVectorScale(XMVectorAdd(vmax, vmin), 0.5f);
+
+    // 길이 중 최대값을 이용하여 모든 버텍스에 대해 정규화 진행
+    float dl = XMMax(XMMax(XMVectorGetX(delta), XMVectorGetY(delta)), XMVectorGetZ(delta));
+    for (auto& mesh : meshes) {
+        for (auto& v : mesh.vertices) {
+            XMVECTOR position = XMLoadFloat3(&v.position);
+            position = XMVectorDivide(XMVectorSubtract(position, center), XMVectorReplicate(dl));
+            XMStoreFloat3(&v.position, position);
+        }
+    }
+
+    return meshes;
 }

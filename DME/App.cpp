@@ -29,9 +29,14 @@ bool App::Initialize() {
     if (!InitGUI()) return false;
 
     m_OriginalMeshGroup.Initialize(m_device);
-    auto box = GeometryGenerator::CreateBox();
-    box.textureFilename = "wall.jpg";
-    m_OriginalMeshGroup.AddMesh(m_device, { box });
+
+    //auto box = GeometryGenerator::CreateBox();
+    //box.textureFilename = "wall.jpg";
+    //m_OriginalMeshGroup.AddMesh(m_device, { box });
+
+    // from https://f3d.app//doc/GALLERY.html
+    auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
+    m_OriginalMeshGroup.AddMesh(m_device, { zelda });
 
     return true;
 }

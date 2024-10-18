@@ -3,7 +3,6 @@
 #include <vector>
 #include <string>
 
-#include <DirectXMath.h>
 #include <windows.h>
 
 #include "Vertex.h"
@@ -17,4 +16,5 @@ struct MeshData {
 class GeometryGenerator {
 public:
     static MeshData CreateBox(const float scale = 1.0f);
+    static std::vector<MeshData> ReadFromFile(std::string basePath, std::string filename);
 };

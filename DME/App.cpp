@@ -344,8 +344,11 @@ void App::UpdateGUI() {
         m_lightType = 2;
     }
 
+    // 赣萍府倔 加己
+    ImGui::SliderFloat("Shininess", &m_OriginalMeshGroup.m_pixelConstantData.material.shininess, 1.0f, 500.0f);
+
     // 堡盔 加己
-    ImGui::SliderFloat3("Light Position", &m_light[m_lightType].position.x, -5.0f, 5.0f);
+    ImGui::SliderFloat3("Light Position", &m_light[m_lightType].position.x, -10.0f, 10.0f);
     ImGui::SliderFloat3("Light Direction", &m_light[m_lightType].direction.x, -5.0f, 5.0f);
     ImGui::SliderFloat("Light fallOffStart", &m_light[m_lightType].fallOffStart, 0.0f, 5.0f);
     ImGui::SliderFloat("Light fallOffEnd", &m_light[m_lightType].fallOffEnd, 0.0f, 10.0f);

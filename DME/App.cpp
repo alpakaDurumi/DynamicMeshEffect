@@ -312,7 +312,7 @@ void App::UpdateVertexConstantData() {
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.invTranspose, XMMatrixTranspose(invTransposeMatrix));
 
     // view
-    XMMATRIX viewMatrix = XMMatrixLookAtLH({ 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+    XMMATRIX viewMatrix = XMMatrixLookAtLH({ 0.0f, 0.0f, -1.5f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.view, XMMatrixTranspose(viewMatrix));
 
     // projection
@@ -330,6 +330,9 @@ void App::UpdatePixelConstantData() {
 
     m_OriginalMeshGroup.m_pixelConstantData.light = m_light[m_lightType];
     m_OriginalMeshGroup.m_pixelConstantData.lightType = m_lightType;
+
+    // 이 viewWorld가 view 행렬 계산 시 XMMatrixLookAtLH의 첫 인자와 똑같아야 함
+    m_OriginalMeshGroup.m_pixelConstantData.viewWorld = { 0.0f, 0.0f, -1.0f };
 }
 
 void App::UpdateGUI() {
@@ -358,7 +361,7 @@ void App::UpdateGUI() {
     }
 
     // 머티리얼 속성
-    ImGui::SliderFloat("Shininess", &m_OriginalMeshGroup.m_pixelConstantData.material.shininess, 1.0f, 500.0f);
+    ImGui::SliderFloat("Shininess", &m_OriginalMeshGroup.m_pixelConstantData.material.shininess, 1.0f, 256.0f);
 
     // 광원 속성
     ImGui::SliderFloat3("Light Position", &m_light[m_lightType].position.x, -10.0f, 10.0f);

@@ -2,6 +2,8 @@
 #include "GeometryGenerator.h"
 
 #include <algorithm>    // std::clamp
+#include <shobjidl.h>   // file dialog
+#include <filesystem>   // std::path
 
 // 전방 선언
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -32,14 +34,14 @@ bool App::Initialize() {
 
     m_OriginalMeshGroup.Initialize(m_device);
 
-    //auto box = GeometryGenerator::CreateBox();
-    //box.textureFilename = "wall.jpg";
-    //m_OriginalMeshGroup.AddMesh(m_device, { box });
+    auto box = GeometryGenerator::CreateBox();
+    box.textureFilename = "wall.jpg";
+    m_OriginalMeshGroup.AddMesh(m_device, { box });
 
     // from https://f3d.app//doc/GALLERY.html
-    auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
-    m_OriginalMeshGroup.AddMesh(m_device, { zelda });
-    m_OriginalMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Gold);
+    //auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
+    //m_OriginalMeshGroup.AddMesh(m_device, { zelda });
+    //m_OriginalMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Gold);
 
     // 큐브맵 초기화
     // from https://www.humus.name/index.php?page=Textures&ID=124
@@ -375,6 +377,52 @@ void App::UpdatePixelConstantData() {
     m_OriginalMeshGroup.m_pixelConstantData.lightType = m_lightType;
 }
 
+static std::pair<std::string, std::string> OpenFileDialogWithCommonItemDialog() {
+    std::pair<std::string, std::string> result;
+
+    // COM 라이브러리 초기화
+    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    if (SUCCEEDED(hr)) {
+        IFileOpenDialog* pFileOpen;
+
+        // FileOpenDialog 객체 생성
+        hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+            IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+
+        if (SUCCEEDED(hr)) {
+            // 대화상자 표시
+            hr = pFileOpen->Show(NULL);
+
+            if (SUCCEEDED(hr)) {
+                IShellItem* pItem;
+                hr = pFileOpen->GetResult(&pItem);
+                if (SUCCEEDED(hr)) {
+                    // 파일 경로 추출
+                    PWSTR pszFilePath;
+                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+                    if (SUCCEEDED(hr)) {
+                        // 경로와 파일 이름 분리
+                        std::filesystem::path path(pszFilePath);
+
+                        result.first = path.parent_path().string() + "/";
+                        result.second = path.filename().string();
+
+                        // GeometryGenerator::ReadFromFile에 맞는 형태로 처리
+                        std::replace(result.first.begin(), result.first.end(), '\\', '/');
+
+                        CoTaskMemFree(pszFilePath);
+                    }
+                    pItem->Release();
+                }
+            }
+            pFileOpen->Release();
+        }
+        CoUninitialize();
+    }
+    return result;
+}
+
 void App::UpdateGUI() {
     // 모델 변환
     ImGui::SliderFloat3("Scale", &m_scale.x, 0.1f, 2.0f);
@@ -409,6 +457,20 @@ void App::UpdateGUI() {
     ImGui::SliderFloat("Light fallOffStart", &m_light[m_lightType].fallOffStart, 0.0f, 5.0f);
     ImGui::SliderFloat("Light fallOffEnd", &m_light[m_lightType].fallOffEnd, 0.0f, 10.0f);
     ImGui::SliderFloat("Light spotPower", &m_light[m_lightType].spotPower, 1.0f, 512.0f);
+
+    // 모델 불러오기
+    if (ImGui::Button("Import Model")) {
+        auto fileInfo = OpenFileDialogWithCommonItemDialog();
+
+        if (!fileInfo.second.empty()) {
+            std::cout << fileInfo.first << std::endl;
+            std::cout << fileInfo.second << std::endl;
+            
+            auto zelda = GeometryGenerator::ReadFromFile(fileInfo.first, fileInfo.second);
+            m_OriginalMeshGroup.AddMesh(m_device, { zelda });
+            m_OriginalMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Silver);
+        }
+    }
 }
 
 void App::Render() {

@@ -17,6 +17,4 @@ private:
     std::shared_ptr<Mesh> m_cubeMesh;
 
     ComPtr<ID3D11ShaderResourceView> m_skyboxResView;
-    ComPtr<ID3D11ShaderResourceView> m_diffuseResView;
-    ComPtr<ID3D11ShaderResourceView> m_specularResView;
 };

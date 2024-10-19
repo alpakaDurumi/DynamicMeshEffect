@@ -43,6 +43,8 @@ bool App::Initialize() {
     // 큐브맵 초기화
     // from https://www.humus.name/index.php?page=Textures&ID=124
     m_cubeMapping.Initialize(m_device, L"skybox.dds", L"diffuseMap.dds", L"specularMap.dds");
+    m_OriginalMeshGroup.m_diffuseResView = m_cubeMapping.m_diffuseResView;
+    m_OriginalMeshGroup.m_specularResView = m_cubeMapping.m_specularResView;
 
     return true;
 }

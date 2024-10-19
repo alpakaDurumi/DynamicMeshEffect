@@ -80,7 +80,11 @@ void MeshGroup::Render(ComPtr<ID3D11DeviceContext>& context) {
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         // SRV ¼³Á¤
-        context->PSSetShaderResources(0, 1, mesh->m_shaderResourceView.GetAddressOf());
+        ID3D11ShaderResourceView* resViews[3] = {
+            mesh->m_shaderResourceView.Get(),
+            m_diffuseResView.Get(),
+            m_specularResView.Get() };
+        context->PSSetShaderResources(0, 3, resViews);
 
         context->DrawIndexed(mesh->m_indexCount, 0, 0);
     }

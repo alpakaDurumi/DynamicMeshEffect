@@ -34,6 +34,10 @@ public:
 
     VertexConstantData m_vertexConstantData;
     PixelConstantData m_pixelConstantData;
+
+    // 환경 매핑
+    ComPtr<ID3D11ShaderResourceView> m_diffuseResView;
+    ComPtr<ID3D11ShaderResourceView> m_specularResView;
 protected:
     std::vector<std::shared_ptr<Mesh>> m_meshes;
 

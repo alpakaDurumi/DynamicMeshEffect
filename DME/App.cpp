@@ -39,6 +39,7 @@ bool App::Initialize() {
     // from https://f3d.app//doc/GALLERY.html
     auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
     m_OriginalMeshGroup.AddMesh(m_device, { zelda });
+    m_OriginalMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Gold);
 
     // 큐브맵 초기화
     // from https://www.humus.name/index.php?page=Textures&ID=124

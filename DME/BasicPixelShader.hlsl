@@ -1,15 +1,8 @@
+#include "Common.hlsli"
 #include "BlinnPhong.hlsli"
 
 Texture2D g_texture0 : register(t0);
 SamplerState g_sampler : register(s0);
-
-struct PixelShaderInput
-{
-	float4 posProj : SV_POSITION; // projection space
-	float3 posWorld : POSITION; // world space
-	float3 normalWorld : NORMAL;
-	float2 texcoord : TEXCOORD;
-};
 
 cbuffer PixelConstantData : register(b0)
 {

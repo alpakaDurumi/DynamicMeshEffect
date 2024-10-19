@@ -1,5 +1,5 @@
-#ifndef __COMMON_HLSLI__
-#define __COMMON_HLSLI__
+#ifndef __BLINNPHONG_HLSLI__
+#define __BLINNPHONG_HLSLI__
 
 struct Material
 {
@@ -115,4 +115,4 @@ float3 ComputeSpotLight(Light light, Material mat, float3 position, float3 norma
 	}
 }
 
-#endif // __COMMON_HLSLI__
+#endif // __BLINNPHONG_HLSLI__

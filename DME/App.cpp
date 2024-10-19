@@ -1,6 +1,8 @@
 #include "App.h"
 #include "GeometryGenerator.h"
 
+#include <algorithm>    // std::clamp
+
 // 전방 선언
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -137,8 +139,8 @@ LRESULT App::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             float deltaX = currentMousePosition.x - m_lastMousePosition.x;
             float deltaY = currentMousePosition.y - m_lastMousePosition.y;
 
-            // 각도 업데이트 (회전 속도 조절)
-            m_cameraAngleX += deltaY * m_rotationSpeed;
+            // 각도 업데이트
+            m_cameraAngleX = std::clamp(m_cameraAngleX + deltaY * m_rotationSpeed, -m_maxPitch, m_maxPitch);
             m_cameraAngleY += deltaX * m_rotationSpeed;
 
             // 마지막 위치 업데이트
@@ -338,7 +340,19 @@ void App::UpdateVertexConstantData() {
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.invTranspose, XMMatrixTranspose(invTransposeMatrix));
 
     // view
-    XMMATRIX viewMatrix = CalcViewMatrix();
+
+    // 카메라 초기 속성
+    XMVECTOR cameraPosition = XMVectorSet(0.0f, 0.0f, -1.5f, 1.0f);
+    XMVECTOR cameraTarget = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+    XMVECTOR cameraUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+    // 카메라 회전 적용
+    XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(m_cameraAngleX, m_cameraAngleY, 0.0f);
+    cameraPosition = XMVector3TransformCoord(cameraPosition, rotationMatrix);
+    XMStoreFloat3(&m_OriginalMeshGroup.m_pixelConstantData.viewWorld, cameraPosition);
+
+    // view 행렬 계산
+    XMMATRIX viewMatrix = XMMatrixLookAtLH(cameraPosition, cameraTarget, cameraUp);
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.view, XMMatrixTranspose(viewMatrix));
 
     // projection
@@ -356,23 +370,6 @@ void App::UpdatePixelConstantData() {
 
     m_OriginalMeshGroup.m_pixelConstantData.light = m_light[m_lightType];
     m_OriginalMeshGroup.m_pixelConstantData.lightType = m_lightType;
-
-    // 이 viewWorld가 view 행렬 계산 시 XMMatrixLookAtLH의 첫 인자와 똑같아야 함
-    m_OriginalMeshGroup.m_pixelConstantData.viewWorld = { 0.0f, 0.0f, -1.0f };
-}
-
-XMMATRIX App::CalcViewMatrix() {
-    // 카메라 초기 속성
-    XMVECTOR cameraPosition = XMVectorSet(0.0f, 0.0f, -1.5f, 1.0f);
-    XMVECTOR cameraTarget = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-    XMVECTOR cameraUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-    // 회전 적용
-    XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(m_cameraAngleX, m_cameraAngleY, 0.0f);
-    cameraPosition = XMVector3TransformCoord(cameraPosition, rotationMatrix);
-
-    // 새로운 뷰 행렬 계산
-    return XMMatrixLookAtLH(cameraPosition, cameraTarget, cameraUp);
 }
 
 void App::UpdateGUI() {

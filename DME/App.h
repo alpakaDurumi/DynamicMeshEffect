@@ -32,7 +32,6 @@ private:
 
     void UpdateVertexConstantData();
     void UpdatePixelConstantData();
-    XMMATRIX CalcViewMatrix();
     void UpdateGUI();
 
     void Render();
@@ -74,4 +73,5 @@ private:
     float m_cameraAngleX = 0.0f; // X축 회전 각도
     float m_cameraAngleY = 0.0f; // Y축 회전 각도
     const float m_rotationSpeed = 0.005f;
+    const float m_maxPitch = XM_PIDIV2 - 0.01f; // 약 89도
 };

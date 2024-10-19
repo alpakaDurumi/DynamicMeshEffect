@@ -121,7 +121,33 @@ LRESULT App::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
              //depth stencil buffer 생성
             D3D11Utils::CreateDepthBuffer(m_device, m_screenWidth, m_screenHeight, m_depthStencilView);
         }
+        break;
+    case WM_LBUTTONDOWN:    // 마우스 왼쪽 버튼 down
+        m_isMouseDragging = true;
+        SetCapture(hwnd); // 마우스 캡처
+        GetCursorPos(&m_lastMousePosition);
+        break;
+    case WM_MOUSEMOVE:      // 마우스 이동
+        // 드래그 중일 때에만 동작
+        if (m_isMouseDragging) {
+            POINT currentMousePosition;
+            GetCursorPos(&currentMousePosition);
 
+            // 마우스 이동량 계산
+            float deltaX = currentMousePosition.x - m_lastMousePosition.x;
+            float deltaY = currentMousePosition.y - m_lastMousePosition.y;
+
+            // 각도 업데이트 (회전 속도 조절)
+            m_cameraAngleX += deltaY * m_rotationSpeed;
+            m_cameraAngleY += deltaX * m_rotationSpeed;
+
+            // 마지막 위치 업데이트
+            m_lastMousePosition = currentMousePosition;
+        }
+        break;
+    case WM_LBUTTONUP:  // 마우스 왼쪽 버튼 up
+        m_isMouseDragging = false;
+        ReleaseCapture(); // 마우스 캡처 해제
         break;
     }
 
@@ -312,7 +338,7 @@ void App::UpdateVertexConstantData() {
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.invTranspose, XMMatrixTranspose(invTransposeMatrix));
 
     // view
-    XMMATRIX viewMatrix = XMMatrixLookAtLH({ 0.0f, 0.0f, -1.5f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+    XMMATRIX viewMatrix = CalcViewMatrix();
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.view, XMMatrixTranspose(viewMatrix));
 
     // projection
@@ -333,6 +359,20 @@ void App::UpdatePixelConstantData() {
 
     // 이 viewWorld가 view 행렬 계산 시 XMMatrixLookAtLH의 첫 인자와 똑같아야 함
     m_OriginalMeshGroup.m_pixelConstantData.viewWorld = { 0.0f, 0.0f, -1.0f };
+}
+
+XMMATRIX App::CalcViewMatrix() {
+    // 카메라 초기 속성
+    XMVECTOR cameraPosition = XMVectorSet(0.0f, 0.0f, -1.5f, 1.0f);
+    XMVECTOR cameraTarget = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+    XMVECTOR cameraUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+    // 회전 적용
+    XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(m_cameraAngleX, m_cameraAngleY, 0.0f);
+    cameraPosition = XMVector3TransformCoord(cameraPosition, rotationMatrix);
+
+    // 새로운 뷰 행렬 계산
+    return XMMatrixLookAtLH(cameraPosition, cameraTarget, cameraUp);
 }
 
 void App::UpdateGUI() {

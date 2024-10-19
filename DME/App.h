@@ -32,6 +32,7 @@ private:
 
     void UpdateVertexConstantData();
     void UpdatePixelConstantData();
+    XMMATRIX CalcViewMatrix();
     void UpdateGUI();
 
     void Render();
@@ -66,4 +67,11 @@ private:
     Light m_light[3];
 
     bool m_drawAsWire = false;
+
+    // 마우스 드래그
+    bool m_isMouseDragging = false;
+    POINT m_lastMousePosition;
+    float m_cameraAngleX = 0.0f; // X축 회전 각도
+    float m_cameraAngleY = 0.0f; // Y축 회전 각도
+    const float m_rotationSpeed = 0.005f;
 };

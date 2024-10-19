@@ -95,3 +95,8 @@ void MeshGroup::UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D1
     D3D11Utils::UpdateBuffer(device, context, m_vertexConstantData, m_vertexConstantBuffer);
     D3D11Utils::UpdateBuffer(device, context, m_pixelConstantData, m_pixelConstantBuffer);
 }
+
+void MeshGroup::ClearMeshes() {
+    // 메모리 해제
+    m_meshes.clear();
+}

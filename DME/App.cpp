@@ -466,9 +466,10 @@ void App::UpdateGUI() {
             std::cout << fileInfo.first << std::endl;
             std::cout << fileInfo.second << std::endl;
             
-            auto zelda = GeometryGenerator::ReadFromFile(fileInfo.first, fileInfo.second);
-            m_OriginalMeshGroup.AddMesh(m_device, { zelda });
-            m_OriginalMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Silver);
+            m_OriginalMeshGroup.ClearMeshes();
+            auto newMeshData = GeometryGenerator::ReadFromFile(fileInfo.first, fileInfo.second);
+            m_OriginalMeshGroup.AddMesh(m_device, { newMeshData });
+            m_OriginalMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Gold);
         }
     }
 }

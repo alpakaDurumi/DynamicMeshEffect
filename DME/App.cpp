@@ -38,6 +38,10 @@ bool App::Initialize() {
     auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
     m_OriginalMeshGroup.AddMesh(m_device, { zelda });
 
+    // Å¥ºê¸Ê ÃÊ±âÈ­
+    // from https://www.humus.name/index.php?page=Textures&ID=124
+    m_cubeMapping.Initialize(m_device, L"", L"san_francisco.dds");
+
     return true;
 }
 
@@ -64,6 +68,7 @@ int App::Run() {
 
             // ¹öÆÛ ¾÷µ¥ÀÌÆ®
             m_OriginalMeshGroup.UpdateConstantBuffers(m_device, m_context);
+            m_cubeMapping.UpdateConstantBuffers(m_device, m_context);
 
             // ·»´õ¸µ
             Render();
@@ -313,6 +318,9 @@ void App::UpdateVertexConstantData() {
     // projection
     XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(m_fovY, static_cast<float>(m_screenWidth) / m_screenHeight, m_nearZ, m_farZ);
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.projection, XMMatrixTranspose(projectionMatrix));
+
+    // Å¥ºê¸Ê
+    XMStoreFloat4x4(&m_cubeMapping.m_vertexConstantData.viewProj, XMMatrixTranspose(viewMatrix * projectionMatrix));
 }
 
 void App::UpdatePixelConstantData() {
@@ -380,4 +388,7 @@ void App::Render() {
 
     // MeshGroup ·»´õ
     m_OriginalMeshGroup.Render(m_context);
+
+    // Å¥ºê¸Ê ·»´õ
+    m_cubeMapping.Render(m_context);
 }

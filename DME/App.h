@@ -11,6 +11,7 @@
 #include <imgui_impl_win32.h>
 
 #include "MeshGroup.h"
+#include "CubeMapping.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -50,6 +51,7 @@ private:
 
     MeshGroup m_OriginalMeshGroup;
     MeshGroup m_ShellMeshGroup;
+    CubeMapping m_cubeMapping;
 
     // MVP За·Д
     XMFLOAT3 m_scale = { 1.0f, 1.0f, 1.0f };

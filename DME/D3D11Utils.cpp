@@ -5,6 +5,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include <directxtk/DDSTextureLoader.h>
+
 void D3D11Utils::SetViewport(ComPtr<ID3D11DeviceContext>& context, int screenWidth, int screenHeight) {
     D3D11_VIEWPORT viewport;
     ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
@@ -244,4 +246,35 @@ void D3D11Utils::CreateTexture(
 
     // img 메모리 해제
     stbi_image_free(img);
+}
+
+void D3D11Utils::CreateCubemapTexture(
+    ComPtr<ID3D11Device>& device,
+    const wchar_t* filename,
+    ComPtr<ID3D11ShaderResourceView>& textureResourceView) {
+
+    //ComPtr<ID3D11Texture2D> texture;
+
+    //// 함수에 전달하기 위해 캐스팅
+    //ComPtr<ID3D11Resource> resource;
+    //texture.As(&resource);
+
+    ComPtr<ID3D11Resource> resource;
+
+    auto hr = DirectX::CreateDDSTextureFromFileEx(
+        device.Get(),
+        filename,
+        0,
+        D3D11_USAGE_DEFAULT,
+        D3D11_BIND_SHADER_RESOURCE,
+        0,
+        D3D11_RESOURCE_MISC_TEXTURECUBE,
+        DirectX::DDS_LOADER_FLAGS(false),
+        resource.GetAddressOf(),
+        textureResourceView.GetAddressOf(),
+        nullptr);
+
+    if (FAILED(hr)) {
+        std::cout << "Create Cubemap texture failed." << std::endl;
+    }
 }

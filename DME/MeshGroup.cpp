@@ -1,6 +1,5 @@
 #include "MeshGroup.h"
 
-// 쉐이더 파일 이름 접두사를 인자로 받도록 수정하기
 void MeshGroup::Initialize(ComPtr<ID3D11Device>& device) {
     // constant data 초기화
     XMMATRIX tempMatrix = XMMatrixIdentity();
@@ -33,9 +32,8 @@ void MeshGroup::Initialize(ComPtr<ID3D11Device>& device) {
     };
 
     // 버텍스 쉐이더와 픽셀 쉐이더 생성
-    // 각 함수의 두번째 인자 수정해야 함
-    D3D11Utils::CreateVertexShaderAndInputLayout(device, L"VertexShader.hlsl", inputElements, m_vertexShader, m_inputLayout);
-    D3D11Utils::CreatePixelShader(device, L"PixelShader.hlsl", m_pixelShader);
+    D3D11Utils::CreateVertexShaderAndInputLayout(device, L"BasicVertexShader.hlsl", inputElements, m_vertexShader, m_inputLayout);
+    D3D11Utils::CreatePixelShader(device, L"BasicPixelShader.hlsl", m_pixelShader);
 }
 
 void MeshGroup::AddMesh(ComPtr<ID3D11Device>& device, const std::vector<MeshData>& meshes) {

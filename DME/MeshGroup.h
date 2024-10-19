@@ -34,7 +34,7 @@ public:
 
     VertexConstantData m_vertexConstantData;
     PixelConstantData m_pixelConstantData;
-private:
+protected:
     std::vector<std::shared_ptr<Mesh>> m_meshes;
 
     ComPtr<ID3D11VertexShader> m_vertexShader;

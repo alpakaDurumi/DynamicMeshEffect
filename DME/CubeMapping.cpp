@@ -1,8 +1,8 @@
 #include "CubeMapping.h"
 
-void CubeMapping::Initialize(ComPtr<ID3D11Device>& device, const wchar_t* diffuseFilename, const wchar_t* specularFilename) {
-
+void CubeMapping::Initialize(ComPtr<ID3D11Device>& device, const wchar_t* skyboxFilename, const wchar_t* diffuseFilename, const wchar_t* specularFilename) {
     // .dds 파일 읽어들여서 초기화
+    D3D11Utils::CreateCubemapTexture(device, skyboxFilename, m_skyboxResView);
     D3D11Utils::CreateCubemapTexture(device, diffuseFilename, m_diffuseResView);
     D3D11Utils::CreateCubemapTexture(device, specularFilename, m_specularResView);
 
@@ -69,7 +69,7 @@ void CubeMapping::Render(ComPtr<ID3D11DeviceContext>& context) {
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // SRV 설정
-    context->PSSetShaderResources(0, 1, m_specularResView.GetAddressOf());
+    context->PSSetShaderResources(0, 1, m_skyboxResView.GetAddressOf());
 
     context->DrawIndexed(m_cubeMesh->m_indexCount, 0, 0);
 }

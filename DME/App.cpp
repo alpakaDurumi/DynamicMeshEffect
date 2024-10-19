@@ -40,7 +40,7 @@ bool App::Initialize() {
 
     // 큐브맵 초기화
     // from https://www.humus.name/index.php?page=Textures&ID=124
-    m_cubeMapping.Initialize(m_device, L"", L"san_francisco.dds");
+    m_cubeMapping.Initialize(m_device, L"skybox.dds", L"diffuseMap.dds", L"specularMap.dds");
 
     return true;
 }

@@ -253,14 +253,6 @@ void D3D11Utils::CreateCubemapTexture(
     const wchar_t* filename,
     ComPtr<ID3D11ShaderResourceView>& textureResourceView) {
 
-    //ComPtr<ID3D11Texture2D> texture;
-
-    //// 함수에 전달하기 위해 캐스팅
-    //ComPtr<ID3D11Resource> resource;
-    //texture.As(&resource);
-
-    ComPtr<ID3D11Resource> resource;
-
     auto hr = DirectX::CreateDDSTextureFromFileEx(
         device.Get(),
         filename,
@@ -270,7 +262,7 @@ void D3D11Utils::CreateCubemapTexture(
         0,
         D3D11_RESOURCE_MISC_TEXTURECUBE,
         DirectX::DDS_LOADER_FLAGS(false),
-        resource.GetAddressOf(),
+        nullptr, // view만 갖도록 설정하였음
         textureResourceView.GetAddressOf(),
         nullptr);
 

@@ -106,20 +106,83 @@ std::vector<MeshData> GeometryGenerator::CreateShell(const std::vector<MeshData>
     // 각 부분 메쉬마다 따로 처리
     for (const auto& mesh : originalMeshData) {
         MeshData newMesh;
+        newMesh.vertices.reserve(mesh.vertices.size() * 2);
+
+        // 바깥쪽 버텍스
         for (const auto& v : mesh.vertices) {
             Vertex newV = v;
 
             // normal을 thickness만큼 곱하여 position에 더하기
             XMVECTOR positionVec = XMLoadFloat3(&v.position);
             XMVECTOR displacementVec = XMVectorScale(XMLoadFloat3(&v.normal), thickness);
-            
-            // 새로운 position 값을 XMFLOAT3로 변환 후 저장
             DirectX::XMStoreFloat3(&newV.position, positionVec + displacementVec);
 
             newMesh.vertices.push_back(newV);
         }
 
-        newMesh.indices = mesh.indices;
+        // 안쪽 버텍스
+        for (const auto& v : mesh.vertices) {
+            newMesh.vertices.push_back(v);
+        }
+
+        // 인덱스 추가
+        const std::vector<UINT>& indices = mesh.indices;
+        const size_t indexCount = indices.size();
+        for (size_t i = 0; i < indexCount; i += 3) {
+            // 3개의 인덱스를 가져옴
+            UINT idx0 = indices[i];
+            UINT idx1 = indices[i + 1];
+            UINT idx2 = indices[i + 2];
+
+            // 바깥쪽 버텍스 인덱스
+            UINT outerIdx0 = idx0;
+            UINT outerIdx1 = idx1;
+            UINT outerIdx2 = idx2;
+
+            // 안쪽 버텍스 인덱스
+            UINT innerIdx0 = idx0 + mesh.vertices.size();
+            UINT innerIdx1 = idx1 + mesh.vertices.size();
+            UINT innerIdx2 = idx2 + mesh.vertices.size();
+
+            // 인덱스 추가: 바깥쪽 삼각형
+            newMesh.indices.push_back(outerIdx0);
+            newMesh.indices.push_back(outerIdx1);
+            newMesh.indices.push_back(outerIdx2);
+
+            // 인덱스 추가: 안쪽 삼각형
+            newMesh.indices.push_back(innerIdx2);
+            newMesh.indices.push_back(innerIdx1);
+            newMesh.indices.push_back(innerIdx0);
+
+            // 옆면 삼각형 인덱스 추가
+
+            // 0 1
+            newMesh.indices.push_back(innerIdx1);
+            newMesh.indices.push_back(outerIdx1);
+            newMesh.indices.push_back(outerIdx0);
+
+            newMesh.indices.push_back(innerIdx1);
+            newMesh.indices.push_back(outerIdx0);
+            newMesh.indices.push_back(innerIdx0);
+
+            // 1 2
+            newMesh.indices.push_back(innerIdx2);
+            newMesh.indices.push_back(outerIdx2);
+            newMesh.indices.push_back(outerIdx1);
+
+            newMesh.indices.push_back(innerIdx2);
+            newMesh.indices.push_back(outerIdx1);
+            newMesh.indices.push_back(innerIdx1);
+
+            // 0 2
+            newMesh.indices.push_back(innerIdx0);
+            newMesh.indices.push_back(outerIdx0);
+            newMesh.indices.push_back(outerIdx2);
+
+            newMesh.indices.push_back(innerIdx0);
+            newMesh.indices.push_back(outerIdx2);
+            newMesh.indices.push_back(innerIdx2);
+        }
 
         shell.push_back(newMesh);
     }

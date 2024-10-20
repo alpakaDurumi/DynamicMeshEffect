@@ -47,6 +47,7 @@ bool App::Initialize() {
     m_ShellMeshGroup.Initialize(m_device);
     auto shell = GeometryGenerator::CreateShell(zelda, 0.01f);
     m_ShellMeshGroup.AddMesh(m_device, shell);
+    m_ShellMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Silver);
 
     // 큐브맵 초기화
     // from https://www.humus.name/index.php?page=Textures&ID=124

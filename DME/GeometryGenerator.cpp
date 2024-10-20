@@ -60,6 +60,47 @@ MeshData GeometryGenerator::CreateBox(const float scale) {
     return meshData;
 }
 
+MeshData GeometryGenerator::CreateSphere(const float radius, const int numSlices, const int numStacks) {
+    const float dTheta = -XM_2PI / numSlices;
+    const float dPhi = -XM_PI / numStacks;
+
+    MeshData meshData;
+
+    vector<Vertex>& vertices = meshData.vertices;
+
+    for (int j = 0; j <= numStacks; j++) {
+        XMFLOAT3 temp(0.0f, -radius, 0.0f);
+        XMVECTOR stackStartPoint = XMVector3Transform(XMLoadFloat3(&temp), XMMatrixRotationZ(dPhi * j));
+        for (int i = 0; i <= numSlices; i++) {
+            Vertex v;
+
+            XMVECTOR position = XMVector3Transform(stackStartPoint, XMMatrixRotationY(dTheta * static_cast<float>(i)));
+            XMStoreFloat3(&v.position, position);
+            XMStoreFloat3(&v.normal, XMVector3Normalize(position));
+            v.texCoord = XMFLOAT2(static_cast<float>(i) / numSlices, 1.0f - static_cast<float>(j) / numStacks);
+
+            vertices.push_back(v);
+        }
+    }
+
+    vector<UINT>& indices = meshData.indices;
+
+    for (int j = 0; j < numStacks; j++) {
+        const int offset = (numSlices + 1) * j;
+        for (int i = 0; i < numSlices; i++) {
+            indices.push_back(offset + i);
+            indices.push_back(offset + i + numSlices + 1);
+            indices.push_back(offset + i + 1 + numSlices + 1);
+
+            indices.push_back(offset + i);
+            indices.push_back(offset + i + 1 + numSlices + 1);
+            indices.push_back(offset + i + 1);
+        }
+    }
+
+    return meshData;
+}
+
 vector<MeshData> GeometryGenerator::ReadFromFile(std::string basePath, std::string filename) {
     using namespace DirectX;
 

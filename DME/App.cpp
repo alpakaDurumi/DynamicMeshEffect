@@ -376,6 +376,10 @@ void App::UpdateVertexConstantData() {
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.projection, XMMatrixTranspose(projectionMatrix));
     XMStoreFloat4x4(&m_ShellMeshGroup.m_vertexConstantData.projection, XMMatrixTranspose(projectionMatrix));
 
+    // 마우스 위치 받아오기
+    XMVECTOR temp = GetMousePos3D(1.0f, viewMatrix, projectionMatrix, cameraPosition, cameraTarget);
+    
+
     // 큐브맵
     XMStoreFloat4x4(&m_cubeMapping.m_vertexConstantData.viewProj, XMMatrixTranspose(viewMatrix * projectionMatrix));
 }
@@ -512,4 +516,37 @@ void App::Render() {
 
     // 큐브맵 렌더
     m_cubeMapping.Render(m_context);
+}
+
+XMVECTOR App::GetMousePos3D(float planeDistance, XMMATRIX viewMatrix, XMMATRIX projMatrix, XMVECTOR cameraPosition, XMVECTOR cameraTarget) {
+    // 현재 마우스 위치를 클라이언트 좌표로 가져오기
+    POINT mousePos;
+    GetCursorPos(&mousePos);
+    ScreenToClient(m_hWnd, &mousePos);
+
+    // 1. 마우스 좌표를 NDC로 변환
+    float xNDC = (2.0f * mousePos.x) / m_screenWidth - 1.0f;
+    float yNDC = 1.0f - (2.0f * mousePos.y) / m_screenHeight;
+
+    // 2. NDC 좌표로 뷰 공간의 레이 생성
+    XMVECTOR rayOrigin = XMVectorSet(0, 0, 0, 1);  // 카메라 위치 (뷰 공간에서 원점)
+    XMVECTOR rayDir = XMVectorSet(xNDC, yNDC, 1, 0);  // z가 1인 이유는 -1에서 1 사이의 깊이를 나타내기 때문
+
+    // 3. 역행렬 계산
+    XMMATRIX invView = XMMatrixInverse(nullptr, viewMatrix);
+    XMMATRIX invProj = XMMatrixInverse(nullptr, projMatrix);
+    XMMATRIX invViewProj = invProj * invView;
+
+    // 4. 레이를 월드 공간으로 변환
+    rayDir = XMVector3TransformNormal(rayDir, invViewProj);
+    rayDir = XMVector3Normalize(rayDir);
+
+    // 5. 카메라가 바라보는 방향
+    XMVECTOR viewDir = XMVector3Normalize(cameraTarget - cameraPosition);
+
+    // 6. 교차점 계산
+    float t = planeDistance / XMVectorGetX(XMVector3Dot(viewDir, rayDir));
+    XMVECTOR intersectionPoint = XMVectorAdd(cameraPosition, XMVectorScale(rayDir, t));
+
+    return intersectionPoint;
 }

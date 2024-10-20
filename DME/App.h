@@ -36,6 +36,8 @@ private:
 
     void Render();
 
+    XMVECTOR GetMousePos3D(float planeDistance, XMMATRIX viewMatrix, XMMATRIX projMatrix, XMVECTOR cameraPosition, XMVECTOR cameraTarget);
+
     int m_screenWidth;
     int m_screenHeight;
     HWND m_hWnd = nullptr;
@@ -67,8 +69,9 @@ private:
 
     bool m_drawAsWire = false;
 
-    // 마우스 드래그
+    // 마우스 관련
     bool m_isMouseDragging = false;
+    POINT m_currentMousePosition;
     POINT m_lastMousePosition;
     float m_cameraAngleX = 0.0f; // X축 회전 각도
     float m_cameraAngleY = 0.0f; // Y축 회전 각도

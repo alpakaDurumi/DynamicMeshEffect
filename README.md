@@ -29,6 +29,12 @@ Content is based on lecture : [홍정모의 그래픽스 새싹코스 - 파트 2
 - [stb](https://github.com/nothings/stb)
 - [DirectXTK](https://github.com/microsoft/DirectXTK)
 
+## 3D models from
+
+- "MP5 Submachine Gun" (https://skfb.ly/prQqA) by Rotuma is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+- "Skull downloadable" (https://skfb.ly/JrST) by martinjario is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+- https://f3d.app//doc/GALLERY.html
+
 ---
 
 # DynamicMeshEffect
@@ -62,3 +68,9 @@ Direct3D 11과 쉐이더 프로그래밍을 연습하기 위한 프로젝트입�
 - [assimp](https://github.com/assimp/assimp)
 - [stb](https://github.com/nothings/stb)
 - [DirectXTK](https://github.com/microsoft/DirectXTK)
+
+## 3D 모델 출처
+
+- "MP5 Submachine Gun" (https://skfb.ly/prQqA) by Rotuma is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+- "Skull downloadable" (https://skfb.ly/JrST) by martinjario is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+- https://f3d.app//doc/GALLERY.html

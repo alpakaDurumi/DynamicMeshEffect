@@ -34,14 +34,19 @@ bool App::Initialize() {
 
     m_OriginalMeshGroup.Initialize(m_device);
 
-    auto box = GeometryGenerator::CreateBox();
-    box.textureFilename = "wall.jpg";
-    m_OriginalMeshGroup.AddMesh(m_device, { box });
+    //auto box = GeometryGenerator::CreateBox();
+    //box.textureFilename = "wall.jpg";
+    //m_OriginalMeshGroup.AddMesh(m_device, { box });
 
     // from https://f3d.app//doc/GALLERY.html
-    //auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
-    //m_OriginalMeshGroup.AddMesh(m_device, { zelda });
-    //m_OriginalMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Gold);
+    auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
+    m_OriginalMeshGroup.AddMesh(m_device, { zelda });
+    m_OriginalMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Gold);
+
+    // ²®Áú »ý¼º
+    m_ShellMeshGroup.Initialize(m_device);
+    auto shell = GeometryGenerator::CreateShell(zelda, 0.01f);
+    m_ShellMeshGroup.AddMesh(m_device, shell);
 
     // Å¥ºê¸Ê ÃÊ±âÈ­
     // from https://www.humus.name/index.php?page=Textures&ID=124
@@ -75,6 +80,7 @@ int App::Run() {
 
             // ¹öÆÛ ¾÷µ¥ÀÌÆ®
             m_OriginalMeshGroup.UpdateConstantBuffers(m_device, m_context);
+            m_ShellMeshGroup.UpdateConstantBuffers(m_device, m_context);
             m_cubeMapping.UpdateConstantBuffers(m_device, m_context);
 
             // ·»´õ¸µ
@@ -338,11 +344,13 @@ void App::UpdateVertexConstantData() {
         XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, m_rotation.z) *
         XMMatrixTranslation(m_translation.x, m_translation.y, m_translation.z);
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.model, XMMatrixTranspose(modelMatrix));
+    XMStoreFloat4x4(&m_ShellMeshGroup.m_vertexConstantData.model, XMMatrixTranspose(modelMatrix));
 
     // invTranspose
     XMMATRIX invTransposeMatrix = modelMatrix * XMMatrixTranslation(0.0f, 0.0f, 0.0f);
     invTransposeMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, modelMatrix));
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.invTranspose, XMMatrixTranspose(invTransposeMatrix));
+    XMStoreFloat4x4(&m_ShellMeshGroup.m_vertexConstantData.invTranspose, XMMatrixTranspose(invTransposeMatrix));
 
     // view
 
@@ -355,14 +363,17 @@ void App::UpdateVertexConstantData() {
     XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(m_cameraAngleX, m_cameraAngleY, 0.0f);
     cameraPosition = XMVector3TransformCoord(cameraPosition, rotationMatrix);
     XMStoreFloat3(&m_OriginalMeshGroup.m_pixelConstantData.viewWorld, cameraPosition);
+    XMStoreFloat3(&m_ShellMeshGroup.m_pixelConstantData.viewWorld, cameraPosition);
 
     // view Çà·Ä °è»ê
     XMMATRIX viewMatrix = XMMatrixLookAtLH(cameraPosition, cameraTarget, cameraUp);
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.view, XMMatrixTranspose(viewMatrix));
+    XMStoreFloat4x4(&m_ShellMeshGroup.m_vertexConstantData.view, XMMatrixTranspose(viewMatrix));
 
     // projection
     XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(m_fovY, static_cast<float>(m_screenWidth) / m_screenHeight, m_nearZ, m_farZ);
     XMStoreFloat4x4(&m_OriginalMeshGroup.m_vertexConstantData.projection, XMMatrixTranspose(projectionMatrix));
+    XMStoreFloat4x4(&m_ShellMeshGroup.m_vertexConstantData.projection, XMMatrixTranspose(projectionMatrix));
 
     // Å¥ºê¸Ê
     XMStoreFloat4x4(&m_cubeMapping.m_vertexConstantData.viewProj, XMMatrixTranspose(viewMatrix * projectionMatrix));
@@ -494,6 +505,9 @@ void App::Render() {
 
     // MeshGroup ·»´õ
     m_OriginalMeshGroup.Render(m_context);
+
+    // ²®Áú ·»´õ
+    m_ShellMeshGroup.Render(m_context);
 
     // Å¥ºê¸Ê ·»´õ
     m_cubeMapping.Render(m_context);

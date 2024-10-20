@@ -2,6 +2,7 @@
 #include "ModelLoader.h"
 
 using namespace std;
+using namespace DirectX;
 
 MeshData GeometryGenerator::CreateBox(const float scale) {
     MeshData meshData;
@@ -93,4 +94,35 @@ vector<MeshData> GeometryGenerator::ReadFromFile(std::string basePath, std::stri
     }
 
     return meshes;
+}
+
+std::vector<MeshData> GeometryGenerator::CreateShell(const std::vector<MeshData>& originalMeshData, float thickness) {
+    // 원본 메쉬의 노멀 데이터를 활용해 껍질 메쉬의 외부를 생성
+    // 원본 메쉬의 버텍스를 반대로 뒤집어서 내부 면 생성
+    // 마우스 위치와 거리 기반으로 껍질 메쉬의 확장 범위를 조절
+
+    std::vector<MeshData> shell;
+    
+    // 각 부분 메쉬마다 따로 처리
+    for (const auto& mesh : originalMeshData) {
+        MeshData newMesh;
+        for (const auto& v : mesh.vertices) {
+            Vertex newV = v;
+
+            // normal을 thickness만큼 곱하여 position에 더하기
+            XMVECTOR positionVec = XMLoadFloat3(&v.position);
+            XMVECTOR displacementVec = XMVectorScale(XMLoadFloat3(&v.normal), thickness);
+            
+            // 새로운 position 값을 XMFLOAT3로 변환 후 저장
+            DirectX::XMStoreFloat3(&newV.position, positionVec + displacementVec);
+
+            newMesh.vertices.push_back(newV);
+        }
+
+        newMesh.indices = mesh.indices;
+
+        shell.push_back(newMesh);
+    }
+
+    return shell;
 }

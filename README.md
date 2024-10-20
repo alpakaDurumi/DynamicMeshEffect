@@ -4,6 +4,8 @@ Personal project for practicing Direct3D 11 and HLSL
 
 Content is based on lecture : [홍정모의 그래픽스 새싹코스 - 파트 2](https://honglab.co.kr/courses/graphicspt2)
 
+![test](images/test.gif)
+
 ## Goals
 
 ### Review lecture

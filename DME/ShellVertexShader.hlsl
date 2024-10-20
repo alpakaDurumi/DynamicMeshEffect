@@ -1,5 +1,13 @@
 #include "Common.hlsli"
 
+struct ShellVertexShaderInput
+{
+	float3 posModel : POSITION;
+	float3 normalModel : NORMAL;
+	float2 texcoord : TEXCOORD0;
+	bool isOutside : TEXCOORD1;
+};
+
 cbuffer VertexConstantData : register(b0)
 {
 	matrix model;
@@ -14,7 +22,7 @@ cbuffer ShellVertexConstantData : register(b1)
 	float radius;
 }
 
-PixelShaderInput main(VertexShaderInput input)
+PixelShaderInput main(ShellVertexShaderInput input)
 {
 	PixelShaderInput output;
 	float4 pos = float4(input.posModel, 1.0f);

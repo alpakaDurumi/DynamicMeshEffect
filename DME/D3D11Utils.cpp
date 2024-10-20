@@ -55,27 +55,6 @@ void D3D11Utils::CreateDepthBuffer(ComPtr<ID3D11Device>& device, int screenWidth
     }
 }
 
-void D3D11Utils::CreateVertexBuffer(ComPtr<ID3D11Device>& device, const std::vector<Vertex>& vertices, ComPtr<ID3D11Buffer>& vertexBuffer) {
-    D3D11_BUFFER_DESC bufferDesc;
-    ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC));
-    bufferDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * vertices.size());
-    bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bufferDesc.CPUAccessFlags = 0;
-    bufferDesc.MiscFlags = 0;
-    bufferDesc.StructureByteStride = sizeof(Vertex);
-
-    D3D11_SUBRESOURCE_DATA subDesc;
-    ZeroMemory(&subDesc, sizeof(D3D11_SUBRESOURCE_DATA));
-    subDesc.pSysMem = vertices.data();
-    subDesc.SysMemPitch = 0;
-    subDesc.SysMemSlicePitch = 0;
-
-    if (FAILED(device->CreateBuffer(&bufferDesc, &subDesc, vertexBuffer.GetAddressOf()))) {
-        std::cout << "CreateBuffer() failed." << std::endl;
-    }
-}
-
 void D3D11Utils::CreateIndexBuffer(ComPtr<ID3D11Device>& device, const std::vector<UINT>& indices, ComPtr<ID3D11Buffer>& indexBuffer) {
     D3D11_BUFFER_DESC bufferDesc;
     ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC));

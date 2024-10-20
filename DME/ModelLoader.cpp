@@ -15,11 +15,13 @@ std::vector<MeshData> ModelLoader::Load(const std::string& basePath, const std::
     // 1. 모든 primitive를 삼각형으로 설정
     // 2. D3D에 맞게 좌표계와 winding order 설정
     // 3. 노멀 벡터가 없는 경우 자동으로 생성
+    // 4. 중복 정점 최적화
     const aiScene* pScene = importer.ReadFile(
         basePath + filename,
         aiProcess_Triangulate | aiProcess_SortByPType |
         aiProcess_MakeLeftHanded | aiProcess_FlipUVs | aiProcess_FlipWindingOrder |
-        aiProcess_GenNormals);
+        aiProcess_GenNormals|
+        aiProcess_JoinIdenticalVertices);
 
     // 실패 시
     if (!pScene) {
@@ -76,30 +78,56 @@ MeshData ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, const std:
     std::vector<Vertex> vertices;
     std::vector<UINT> indices;
 
-    // 메쉬의 각 버텍스의 값 로드
-    for (UINT i = 0; i < mesh->mNumVertices; i++) {
-        Vertex vertex;
-        vertex.position = XMFLOAT3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-        vertex.normal = XMFLOAT3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-
-        // 노멀 벡터 정규화
-        XMVECTOR normalVec = XMVector3Normalize(XMLoadFloat3(&vertex.normal));
-        XMStoreFloat3(&vertex.normal, normalVec);
-
-        // 텍스처 좌표 로드
-        if (mesh->mTextureCoords[0]) {
-            vertex.texCoord.x = static_cast<float>(mesh->mTextureCoords[0][i].x);
-            vertex.texCoord.y = static_cast<float>(mesh->mTextureCoords[0][i].y);
-        }
-
-        vertices.push_back(vertex);
-    }
-
-    // 인덱스 버퍼 로드
+    // 각 face에 대해 정점 복사
     for (UINT i = 0; i < mesh->mNumFaces; i++) {
         aiFace face = mesh->mFaces[i];
-        for (UINT j = 0; j < face.mNumIndices; j++)
-            indices.push_back(face.mIndices[j]);
+
+        Vertex v0, v1, v2;
+
+        // face에 속한 세 정점에 대한 인덱스
+        UINT i0 = face.mIndices[0];
+        UINT i1 = face.mIndices[1];
+        UINT i2 = face.mIndices[2];
+
+        // face에 속한 세 정점
+        v0.position = XMFLOAT3(mesh->mVertices[i0].x, mesh->mVertices[i0].y, mesh->mVertices[i0].z);
+        v1.position = XMFLOAT3(mesh->mVertices[i1].x, mesh->mVertices[i1].y, mesh->mVertices[i1].z);
+        v2.position = XMFLOAT3(mesh->mVertices[i2].x, mesh->mVertices[i2].y, mesh->mVertices[i2].z);
+
+        // 노멀 벡터
+        v0.normal = XMFLOAT3(mesh->mNormals[i0].x, mesh->mNormals[i0].y, mesh->mNormals[i0].z);
+        v1.normal = XMFLOAT3(mesh->mNormals[i1].x, mesh->mNormals[i1].y, mesh->mNormals[i1].z);
+        v2.normal = XMFLOAT3(mesh->mNormals[i2].x, mesh->mNormals[i2].y, mesh->mNormals[i2].z);
+        XMStoreFloat3(&v0.normal, XMVector3Normalize(XMLoadFloat3(&v0.normal)));
+        XMStoreFloat3(&v1.normal, XMVector3Normalize(XMLoadFloat3(&v1.normal)));
+        XMStoreFloat3(&v2.normal, XMVector3Normalize(XMLoadFloat3(&v2.normal)));
+
+        // 텍스처 좌표
+        if (mesh->mTextureCoords[0]) {
+            v0.texCoord.x = static_cast<float>(mesh->mTextureCoords[0][i0].x);
+            v0.texCoord.y = static_cast<float>(mesh->mTextureCoords[0][i0].y);
+
+            v1.texCoord.x = static_cast<float>(mesh->mTextureCoords[0][i1].x);
+            v1.texCoord.y = static_cast<float>(mesh->mTextureCoords[0][i1].y);
+
+            v2.texCoord.x = static_cast<float>(mesh->mTextureCoords[0][i2].x);
+            v2.texCoord.y = static_cast<float>(mesh->mTextureCoords[0][i2].y);
+        }
+
+        // face normal 계산
+        XMVECTOR faceNormal = XMVector3Normalize(XMVector3Cross(
+            XMLoadFloat3(&v1.position) - XMLoadFloat3(&v0.position),
+            XMLoadFloat3(&v2.position) - XMLoadFloat3(&v0.position)));
+        XMStoreFloat3(&v0.faceNormal, faceNormal);
+        XMStoreFloat3(&v1.faceNormal, faceNormal);
+        XMStoreFloat3(&v2.faceNormal, faceNormal);
+
+        vertices.push_back(v0);
+        indices.push_back(static_cast<UINT>(vertices.size() - 1));
+        vertices.push_back(v1);
+        indices.push_back(static_cast<UINT>(vertices.size() - 1));
+        vertices.push_back(v2);
+        indices.push_back(static_cast<UINT>(vertices.size() - 1));
     }
 
     MeshData newMesh;
@@ -111,7 +139,6 @@ MeshData ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, const std:
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
         if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-            // 텍스처 파일은 모델 파일과 같은 위치에 있다고 가정
             aiString filepath;
             material->GetTexture(aiTextureType_DIFFUSE, 0, &filepath);
 

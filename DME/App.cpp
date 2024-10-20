@@ -34,26 +34,28 @@ bool App::Initialize() {
 
     m_OriginalMeshGroup.Initialize(m_device);
 
-    //auto box = GeometryGenerator::CreateBox();
-    //box.textureFilename = "wall.jpg";
-    //m_OriginalMeshGroup.AddMesh(m_device, { box });
+    auto sphere = GeometryGenerator::CreateSphere(0.2f, 30, 30);
+    m_OriginalMeshGroup.AddMesh(m_device, { sphere });
 
     // from https://f3d.app//doc/GALLERY.html
-    auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
-    m_OriginalMeshGroup.AddMesh(m_device, { zelda });
-    m_OriginalMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Gold);
+    //auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
+    //m_OriginalMeshGroup.AddMesh(m_device, { zelda });
 
     // 껍질 생성
     m_ShellMeshGroup.Initialize(m_device);
-    auto shell = GeometryGenerator::CreateShell(zelda, 0.01f);
+    auto shell = GeometryGenerator::CreateShell({ sphere }, 0.01f);
     m_ShellMeshGroup.AddMesh(m_device, shell);
-    m_ShellMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Silver);
+    m_ShellMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Gold);
 
     // 큐브맵 초기화
     // from https://www.humus.name/index.php?page=Textures&ID=124
     m_cubeMapping.Initialize(m_device, L"skybox.dds", L"diffuseMap.dds", L"specularMap.dds");
+
+    // 환경맵
     m_OriginalMeshGroup.m_diffuseResView = m_cubeMapping.m_diffuseResView;
     m_OriginalMeshGroup.m_specularResView = m_cubeMapping.m_specularResView;
+    m_ShellMeshGroup.m_diffuseResView = m_cubeMapping.m_diffuseResView;
+    m_ShellMeshGroup.m_specularResView = m_cubeMapping.m_specularResView;
 
     return true;
 }
@@ -482,10 +484,15 @@ void App::UpdateGUI() {
             std::cout << fileInfo.first << std::endl;
             std::cout << fileInfo.second << std::endl;
             
+            // 기존 모델을 지우고, 새로운 모델 추가
             m_OriginalMeshGroup.ClearMeshes();
             auto newMeshData = GeometryGenerator::ReadFromFile(fileInfo.first, fileInfo.second);
             m_OriginalMeshGroup.AddMesh(m_device, { newMeshData });
-            m_OriginalMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Gold);
+
+            // 기존 껍질을 지우고, 새로운 껍질 추가
+            m_ShellMeshGroup.ClearMeshes();
+            auto newShellData = GeometryGenerator::CreateShell(newMeshData, 0.01f);
+            m_ShellMeshGroup.AddMesh(m_device, newShellData);
         }
     }
 }

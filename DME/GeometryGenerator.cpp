@@ -139,8 +139,6 @@ vector<MeshData> GeometryGenerator::ReadFromFile(std::string basePath, std::stri
 
 std::vector<ShellMeshData> GeometryGenerator::CreateShell(const std::vector<MeshData>& originalMeshData, float thickness) {
     // 원본 메쉬의 노멀 데이터를 활용해 껍질 메쉬의 외부를 생성
-    // 원본 메쉬의 버텍스를 반대로 뒤집어서 내부 면 생성
-    // 마우스 위치와 거리 기반으로 껍질 메쉬의 확장 범위를 조절
 
     std::vector<ShellMeshData> shell;
     

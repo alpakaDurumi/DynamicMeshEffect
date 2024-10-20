@@ -4,8 +4,9 @@
 struct VertexShaderInput
 {
 	float3 posModel : POSITION;
-	float3 normalModel : NORMAL;
+	float3 normalModel : NORMAL0;
 	float2 texcoord : TEXCOORD;
+	float3 faceNormal : NORMAL1;
 };
 
 struct PixelShaderInput

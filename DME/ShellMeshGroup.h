@@ -4,7 +4,7 @@
 
 struct ShellVertexConstantData {
     XMFLOAT3 mousePos;
-    float radius = 0.1f;
+    float radius = 0.5f;
 };
 
 class ShellMeshGroup :public MeshGroup {

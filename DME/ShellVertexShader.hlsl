@@ -3,8 +3,9 @@
 struct ShellVertexShaderInput
 {
 	float3 posModel : POSITION;
-	float3 normalModel : NORMAL;
+	float3 normalModel : NORMAL0;
 	float2 texcoord : TEXCOORD0;
+	float3 faceNormal : NORMAL1;
 	uint isOutside : TEXCOORD1;
 };
 
@@ -33,20 +34,25 @@ PixelShaderInput main(ShellVertexShaderInput input)
 	output.normalWorld = mul(normal, invTranspose).xyz;
 	output.normalWorld = normalize(output.normalWorld);
 	
+	float3 faceNormal = normalize(mul(float4(input.faceNormal, 0.0f), invTranspose)).xyz;
+	
 	// 범위 내에 있다면 위치 변화
 	float d = distance(mousePos, pos.xyz);
 	if (d <= radius)
 	{
-		float3 displacement = output.normalWorld * d;
+		// 거리가 가까울수록 효과가 커지게
+		float intensity = (radius - d) / radius;
+		float3 displacement = faceNormal * intensity * 0.1f;
 		
-		if (input.isOutside == 1)
-		{
-			pos = float4(pos.xyz + displacement, 1.0f);
-		}
-		else
-		{
-			pos = float4(pos.xyz - displacement, 1.0f);
-		}
+		//if (input.isOutside == 1)
+		//{
+		//	pos = float4(pos.xyz + displacement, 1.0f);
+		//}
+		//else
+		//{
+		//	pos = float4(pos.xyz - displacement, 1.0f);
+		//}
+		pos = float4(pos.xyz + displacement, 1.0f);
 	}
 	
 	output.posWorld = pos.xyz;

@@ -24,7 +24,8 @@ void CubeMapping::Initialize(ComPtr<ID3D11Device>& device, const wchar_t* skybox
     std::vector<D3D11_INPUT_ELEMENT_DESC> inputElements = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4 * 3,D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 4 * 6, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 4 * 6, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 1, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4 * 8, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
     // ¹öÅØ½º ½¦ÀÌ´õ¿Í ÇÈ¼¿ ½¦ÀÌ´õ »ý¼º

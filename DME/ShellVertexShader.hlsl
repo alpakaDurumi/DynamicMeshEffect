@@ -5,7 +5,7 @@ struct ShellVertexShaderInput
 	float3 posModel : POSITION;
 	float3 normalModel : NORMAL;
 	float2 texcoord : TEXCOORD0;
-	bool isOutside : TEXCOORD1;
+	uint isOutside : TEXCOORD1;
 };
 
 cbuffer VertexConstantData : register(b0)
@@ -37,7 +37,16 @@ PixelShaderInput main(ShellVertexShaderInput input)
 	float d = distance(mousePos, pos.xyz);
 	if (d <= radius)
 	{
-		pos = float4(pos.xyz + output.normalWorld * d * 0.1f, 1.0f);
+		float3 displacement = output.normalWorld * d;
+		
+		if (input.isOutside == 1)
+		{
+			pos = float4(pos.xyz + displacement, 1.0f);
+		}
+		else
+		{
+			pos = float4(pos.xyz - displacement, 1.0f);
+		}
 	}
 	
 	output.posWorld = pos.xyz;

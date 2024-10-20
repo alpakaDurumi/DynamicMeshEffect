@@ -377,8 +377,8 @@ void App::UpdateVertexConstantData() {
     XMStoreFloat4x4(&m_ShellMeshGroup.m_vertexConstantData.projection, XMMatrixTranspose(projectionMatrix));
 
     // 마우스 위치 받아오기
-    XMVECTOR temp = GetMousePos3D(1.0f, viewMatrix, projectionMatrix, cameraPosition, cameraTarget);
-    
+    XMVECTOR temp = GetMousePos3D(1.5f, viewMatrix, projectionMatrix, cameraPosition, cameraTarget);
+    XMStoreFloat3(&m_ShellMeshGroup.m_shellVertexConstantData.mousePos, temp);
 
     // 큐브맵
     XMStoreFloat4x4(&m_cubeMapping.m_vertexConstantData.viewProj, XMMatrixTranspose(viewMatrix * projectionMatrix));
@@ -525,21 +525,18 @@ XMVECTOR App::GetMousePos3D(float planeDistance, XMMATRIX viewMatrix, XMMATRIX p
     ScreenToClient(m_hWnd, &mousePos);
 
     // 1. 마우스 좌표를 NDC로 변환
-    float xNDC = (2.0f * mousePos.x) / m_screenWidth - 1.0f;
-    float yNDC = 1.0f - (2.0f * mousePos.y) / m_screenHeight;
+    float ndcX = (2.0f * mousePos.x) / m_screenWidth - 1.0f;
+    float ndcY = 1.0f - (2.0f * mousePos.y) / m_screenHeight;
+    XMVECTOR ndcPos = XMVectorSet(ndcX, ndcY, 1.0f, 1.0f);  // z는 1로 설정 (far plane)
 
-    // 2. NDC 좌표로 뷰 공간의 레이 생성
-    XMVECTOR rayOrigin = XMVectorSet(0, 0, 0, 1);  // 카메라 위치 (뷰 공간에서 원점)
-    XMVECTOR rayDir = XMVectorSet(xNDC, yNDC, 1, 0);  // z가 1인 이유는 -1에서 1 사이의 깊이를 나타내기 때문
+    // 2. view와 projection 변환의 역행렬 계산
+    XMMATRIX invViewProj = XMMatrixInverse(nullptr, XMMatrixMultiply(viewMatrix, projMatrix));
+    
+    // 3. NDC 좌표를 월드 좌표로 변환
+    XMVECTOR rayEnd = XMVector3TransformCoord(ndcPos, invViewProj);
 
-    // 3. 역행렬 계산
-    XMMATRIX invView = XMMatrixInverse(nullptr, viewMatrix);
-    XMMATRIX invProj = XMMatrixInverse(nullptr, projMatrix);
-    XMMATRIX invViewProj = invProj * invView;
-
-    // 4. 레이를 월드 공간으로 변환
-    rayDir = XMVector3TransformNormal(rayDir, invViewProj);
-    rayDir = XMVector3Normalize(rayDir);
+    // 4. 레이 방향 계산
+    XMVECTOR rayDir = XMVector3Normalize(rayEnd - cameraPosition);
 
     // 5. 카메라가 바라보는 방향
     XMVECTOR viewDir = XMVector3Normalize(cameraTarget - cameraPosition);

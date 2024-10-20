@@ -39,6 +39,9 @@
     <ClCompile Include="Material.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ShellMeshGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h">
@@ -71,12 +74,16 @@
     <ClInclude Include="CubeMapping.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ShellMeshGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BasicVertexShader.hlsl" />
     <FxCompile Include="BasicPixelShader.hlsl" />
     <FxCompile Include="CubeMappingVertexShader.hlsl" />
     <FxCompile Include="CubeMappingPixelShader.hlsl" />
+    <FxCompile Include="ShellVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BlinnPhong.hlsli" />

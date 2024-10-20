@@ -12,6 +12,7 @@
 
 #include "MeshGroup.h"
 #include "CubeMapping.h"
+#include "ShellMeshGroup.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -52,7 +53,7 @@ private:
     ComPtr<ID3D11DepthStencilState> m_depthStencilState;
 
     MeshGroup m_OriginalMeshGroup;
-    MeshGroup m_ShellMeshGroup;
+    ShellMeshGroup m_ShellMeshGroup;
     CubeMapping m_cubeMapping;
 
     // MVP За·Д

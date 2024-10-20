@@ -30,7 +30,7 @@ public:
     void Initialize(ComPtr<ID3D11Device>& device);
     void AddMesh(ComPtr<ID3D11Device>& device, const std::vector<MeshData>& meshes);
     void Render(ComPtr<ID3D11DeviceContext>& context);
-    void UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& context);
+    virtual void UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& context);
     void ClearMeshes();
 
     VertexConstantData m_vertexConstantData;

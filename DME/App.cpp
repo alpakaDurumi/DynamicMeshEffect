@@ -37,10 +37,6 @@ bool App::Initialize() {
     auto box = GeometryGenerator::CreateBox(0.5f);
     m_OriginalMeshGroup.AddMesh(m_device, { box });
 
-    // from https://f3d.app//doc/GALLERY.html
-    //auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
-    //m_OriginalMeshGroup.AddMesh(m_device, { zelda });
-
     // ²®Áú »ý¼º
     m_ShellMeshGroup.Initialize(m_device);
     auto shell = GeometryGenerator::CreateShell({ box }, 0.02f);

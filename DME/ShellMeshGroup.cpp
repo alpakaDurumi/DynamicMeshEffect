@@ -30,34 +30,12 @@ void ShellMeshGroup::Initialize(ComPtr<ID3D11Device>& device) {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4 * 3,D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 4 * 6, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"NORMAL", 1, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4 * 8, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 1, DXGI_FORMAT_R32_UINT, 0, 4 * 11, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        {"NORMAL", 1, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4 * 8, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
     // 버텍스 쉐이더와 픽셀 쉐이더 생성
     D3D11Utils::CreateVertexShaderAndInputLayout(device, L"ShellVertexShader.hlsl", inputElements, m_vertexShader, m_inputLayout);
     D3D11Utils::CreatePixelShader(device, L"BasicPixelShader.hlsl", m_pixelShader);
-}
-
-void ShellMeshGroup::AddMesh(ComPtr<ID3D11Device>& device, const std::vector<ShellMeshData>& meshes) {
-    // 그룹에 메쉬 추가
-    for (const auto& meshData : meshes) {
-        auto newMesh = std::make_shared<Mesh>();
-
-        // 버텍스 버퍼와 인덱스 버퍼 생성
-        D3D11Utils::CreateVertexBuffer(device, meshData.vertices, newMesh->m_vertexBuffer);
-        D3D11Utils::CreateIndexBuffer(device, meshData.indices, newMesh->m_indexBuffer);
-
-        // 인덱스 개수 지정
-        newMesh->m_indexCount = static_cast<UINT>(meshData.indices.size());
-
-        // 텍스처 파일 존재 시 텍스처 생성
-        if (!meshData.textureFilename.empty()) {
-            D3D11Utils::CreateTexture(device, meshData.textureFilename, newMesh->m_texture, newMesh->m_shaderResourceView);
-        }
-
-        m_meshes.push_back(newMesh);
-    }
 }
 
 void ShellMeshGroup::Render(ComPtr<ID3D11DeviceContext>& context) {
@@ -79,7 +57,7 @@ void ShellMeshGroup::Render(ComPtr<ID3D11DeviceContext>& context) {
     // input layout 설정
     context->IASetInputLayout(m_inputLayout.Get());
 
-    UINT stride = sizeof(ShellVertex);
+    UINT stride = sizeof(Vertex);
     UINT offset = 0;
     for (const auto& mesh : m_meshes) {
         context->IASetVertexBuffers(0, 1, mesh->m_vertexBuffer.GetAddressOf(), &stride, &offset);

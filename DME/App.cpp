@@ -34,8 +34,8 @@ bool App::Initialize() {
 
     m_OriginalMeshGroup.Initialize(m_device);
 
-    auto sphere = GeometryGenerator::CreateSphere(0.2f, 30, 30);
-    m_OriginalMeshGroup.AddMesh(m_device, { sphere });
+    auto box = GeometryGenerator::CreateBox(0.5f);
+    m_OriginalMeshGroup.AddMesh(m_device, { box });
 
     // from https://f3d.app//doc/GALLERY.html
     //auto zelda = GeometryGenerator::ReadFromFile("C:/Users/duram/Downloads/zelda/", "zeldaPosed001.fbx");
@@ -43,7 +43,7 @@ bool App::Initialize() {
 
     // ²®Áú »ý¼º
     m_ShellMeshGroup.Initialize(m_device);
-    auto shell = GeometryGenerator::CreateShell({ sphere }, 0.01f);
+    auto shell = GeometryGenerator::CreateShell({ box }, 0.02f);
     m_ShellMeshGroup.AddMesh(m_device, shell);
     m_ShellMeshGroup.m_pixelConstantData.material = Material::GetMaterialPreset(MaterialPreset::Gold);
 

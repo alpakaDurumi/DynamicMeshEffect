@@ -1,14 +1,5 @@
 #include "Common.hlsli"
 
-struct ShellVertexShaderInput
-{
-	float3 posModel : POSITION;
-	float3 normalModel : NORMAL0;
-	float2 texcoord : TEXCOORD0;
-	float3 faceNormal : NORMAL1;
-	uint isOutside : TEXCOORD1;
-};
-
 cbuffer VertexConstantData : register(b0)
 {
 	matrix model;
@@ -23,7 +14,7 @@ cbuffer ShellVertexConstantData : register(b1)
 	float radius;
 }
 
-PixelShaderInput main(ShellVertexShaderInput input)
+PixelShaderInput main(VertexShaderInput input)
 {
 	PixelShaderInput output;
 	float4 pos = float4(input.posModel, 1.0f);
@@ -42,16 +33,7 @@ PixelShaderInput main(ShellVertexShaderInput input)
 	{
 		// 거리가 가까울수록 효과가 커지게
 		float intensity = (radius - d) / radius;
-		float3 displacement = faceNormal * intensity * 0.1f;
-		
-		//if (input.isOutside == 1)
-		//{
-		//	pos = float4(pos.xyz + displacement, 1.0f);
-		//}
-		//else
-		//{
-		//	pos = float4(pos.xyz - displacement, 1.0f);
-		//}
+		float3 displacement = faceNormal * intensity * 0.5f;
 		pos = float4(pos.xyz + displacement, 1.0f);
 	}
 	

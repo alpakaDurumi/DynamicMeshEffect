@@ -15,7 +15,3 @@ struct Vertex {
     Vertex(float px, float py, float pz, float nx, float ny, float nz, float tx, float ty, float fnx, float fny, float fnz)
         : position(px, py, pz), normal(nx, ny, nz), texCoord(tx, ty), faceNormal(fnx, fny, fnz) {}
 };
-
-struct ShellVertex :public Vertex {
-    uint32_t isOutside;     // true(1)라면 바깥쪽, false(0)라면 안쪽
-};

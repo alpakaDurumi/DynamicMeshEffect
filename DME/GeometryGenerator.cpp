@@ -137,43 +137,30 @@ vector<MeshData> GeometryGenerator::ReadFromFile(std::string basePath, std::stri
     return meshes;
 }
 
-std::vector<ShellMeshData> GeometryGenerator::CreateShell(const std::vector<MeshData>& originalMeshData, float thickness) {
+std::vector<MeshData> GeometryGenerator::CreateShell(const std::vector<MeshData>& originalMeshData, float thickness) {
     // 원본 메쉬의 노멀 데이터를 활용해 껍질 메쉬의 외부를 생성
-
-    std::vector<ShellMeshData> shell;
+    std::vector<MeshData> shell;
     
     // 각 부분 메쉬마다 따로 처리
     for (const auto& mesh : originalMeshData) {
-        ShellMeshData newMesh;
+        MeshData newMesh;
         newMesh.vertices.reserve(mesh.vertices.size() * 2);
 
         // 바깥쪽 버텍스
         for (const auto& v : mesh.vertices) {
-            ShellVertex newV;
-            newV.position = v.position;
-            newV.normal = v.normal;
-            newV.texCoord = v.texCoord;
-            newV.faceNormal = v.faceNormal;
+            Vertex newV = v;
 
             // normal을 thickness만큼 곱하여 position에 더하기
             XMVECTOR positionVec = XMLoadFloat3(&v.position);
             XMVECTOR displacementVec = XMVectorScale(XMLoadFloat3(&v.normal), thickness);
             DirectX::XMStoreFloat3(&newV.position, positionVec + displacementVec);
 
-            // 바깥쪽으로 표시
-            newV.isOutside = 1;
             newMesh.vertices.push_back(newV);
         }
 
         // 안쪽 버텍스
         for (const auto& v : mesh.vertices) {
-            ShellVertex newV;
-            newV.position = v.position;
-            newV.normal = v.normal;
-            newV.texCoord = v.texCoord;
-
-            // 안쪽으로 표시
-            newV.isOutside = 0;
+            Vertex newV = v;
             newMesh.vertices.push_back(newV);
         }
 

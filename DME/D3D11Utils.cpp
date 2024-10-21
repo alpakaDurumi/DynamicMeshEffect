@@ -92,26 +92,37 @@ void D3D11Utils::CreateVertexShaderAndInputLayout(
     compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-    // 쉐이더 컴파일
-    HRESULT hr = D3DCompileFromFile(
-        filename.c_str(),
-        nullptr,
-        D3D_COMPILE_STANDARD_FILE_INCLUDE,
-        "main",
-        "vs_5_0",
-        compileFlags,
-        0,
-        &shaderBlob,
-        &errorBlob);
+    // cso 파일 읽기
+    std::wstring csoFilename = filename;
+    csoFilename.replace(csoFilename.find(L".hlsl"), 5, L".cso");
+    HRESULT hr = D3DReadFileToBlob(csoFilename.c_str(), shaderBlob.GetAddressOf());
 
-    // 검사
     if (FAILED(hr)) {
-        // 파일이 없을 경우
-        if ((hr & D3D11_ERROR_FILE_NOT_FOUND) != 0)
-            std::cout << "Shader file not found." << std::endl;
-        // 에러 메시지가 있으면 출력
-        if (errorBlob)
-            std::cout << "Shader compile error : " << static_cast<char*>(errorBlob->GetBufferPointer()) << std::endl;
+        // cso 파일이 없다면 hlsl 컴파일
+        if ((hr & D3D11_ERROR_FILE_NOT_FOUND) != 0) {
+            std::wcout << "cso file " << csoFilename << " not found. Try to compile hlsl file" << std::endl;
+
+            // 쉐이더 컴파일
+            hr = D3DCompileFromFile(
+                filename.c_str(),
+                nullptr,
+                D3D_COMPILE_STANDARD_FILE_INCLUDE,
+                "main",
+                "vs_5_0",
+                compileFlags,
+                0,
+                shaderBlob.GetAddressOf(),
+                errorBlob.GetAddressOf());
+
+            if (FAILED(hr)) {
+                // 파일이 없을 경우
+                if ((hr & D3D11_ERROR_FILE_NOT_FOUND) != 0)
+                    std::cout << "Shader file not found." << std::endl;
+                // 에러 메시지가 있으면 출력
+                if (errorBlob)
+                    std::cout << "Shader compile error : " << static_cast<char*>(errorBlob->GetBufferPointer()) << std::endl;
+            }
+        }
     }
 
     // 버텍스 쉐이더 생성
@@ -144,26 +155,37 @@ void D3D11Utils::CreatePixelShader(
     compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-    // 쉐이더 컴파일
-    HRESULT hr = D3DCompileFromFile(
-        filename.c_str(),
-        nullptr,
-        D3D_COMPILE_STANDARD_FILE_INCLUDE,
-        "main",
-        "ps_5_0",
-        compileFlags,
-        0,
-        &shaderBlob,
-        &errorBlob);
+    // cso 파일 읽기
+    std::wstring csoFilename = filename;
+    csoFilename.replace(csoFilename.find(L".hlsl"), 5, L".cso");
+    HRESULT hr = D3DReadFileToBlob(csoFilename.c_str(), shaderBlob.GetAddressOf());
 
-    // 검사
     if (FAILED(hr)) {
-        // 파일이 없을 경우
-        if ((hr & D3D11_ERROR_FILE_NOT_FOUND) != 0)
-            std::cout << "Shader file not found." << std::endl;
-        // 에러 메시지가 있으면 출력
-        if (errorBlob)
-            std::cout << "Shader compile error : " << static_cast<char*>(errorBlob->GetBufferPointer()) << std::endl;
+        // cso 파일이 없다면 hlsl 컴파일
+        if ((hr & D3D11_ERROR_FILE_NOT_FOUND) != 0) {
+            std::wcout << "cso file " << csoFilename << " not found. Try to compile hlsl file" << std::endl;
+
+            // 쉐이더 컴파일
+            hr = D3DCompileFromFile(
+                filename.c_str(),
+                nullptr,
+                D3D_COMPILE_STANDARD_FILE_INCLUDE,
+                "main",
+                "ps_5_0",
+                compileFlags,
+                0,
+                shaderBlob.GetAddressOf(),
+                errorBlob.GetAddressOf());
+
+            if (FAILED(hr)) {
+                // 파일이 없을 경우
+                if ((hr & D3D11_ERROR_FILE_NOT_FOUND) != 0)
+                    std::cout << "Shader file not found." << std::endl;
+                // 에러 메시지가 있으면 출력
+                if (errorBlob)
+                    std::cout << "Shader compile error : " << static_cast<char*>(errorBlob->GetBufferPointer()) << std::endl;
+            }
+        }
     }
 
     // 픽셀 쉐이더 생성
